@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MercaQuiz.MVVM.Views.EditDomandaPage"
+             Title="EditDomandaPage">
+    <ContentPage.Content>
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12">
+
+                <Label Text="Testo della domanda" />
+                <Editor Text="{Binding Domanda, Mode=TwoWay}" AutoSize="TextChanges" />
+
+                <Label Text="Risposte" />
+
+                <!-- 4 campi risposta -->
+                <StackLayout>
+                    <Label Text="Risposta 1" VerticalTextAlignment="Center"/>
+                    <Entry  Text="{Binding Answer1, Mode=TwoWay}" />
+
+                    <Label Text="Risposta 2" VerticalTextAlignment="Center"/>
+                    <Entry  Text="{Binding Answer2, Mode=TwoWay}" />
+
+                    <Label Text="Risposta 3" VerticalTextAlignment="Center"/>
+                    <Entry  Text="{Binding Answer3, Mode=TwoWay}"/>
+
+                    <Label Text="Risposta 4" VerticalTextAlignment="Center"/>
+                    <Entry  Text="{Binding Answer4, Mode=TwoWay}"/>
+                </StackLayout>
+                <!--<Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                    <Label Grid.Row="0" Grid.Column="0" Text="Risposta 1" VerticalTextAlignment="Center"/>
+                    <Entry  Grid.Row="0" Grid.Column="1" Text="{Binding Risposte[0], Mode=TwoWay}" WidthRequest="300"/>
+
+                    <Label Grid.Row="1" Grid.Column="0" Text="Risposta 2" VerticalTextAlignment="Center"/>
+                    <Entry  Grid.Row="1" Grid.Column="1" Text="{Binding Risposte[1], Mode=TwoWay}" WidthRequest="300"/>
+
+                    <Label Grid.Row="2" Grid.Column="0" Text="Risposta 3" VerticalTextAlignment="Center"/>
+                    <Entry  Grid.Row="2" Grid.Column="1" Text="{Binding Risposte[2], Mode=TwoWay}" WidthRequest="300"/>
+
+                    <Label Grid.Row="3" Grid.Column="0" Text="Risposta 4" VerticalTextAlignment="Center"/>
+                    <Entry  Grid.Row="3" Grid.Column="1" Text="{Binding Risposte[3], Mode=TwoWay}" WidthRequest="300"/>
+                </Grid>-->
+
+                <!--<Label Text="Risposta corretta" />-->
+                <!-- Picker mostra 1-2-3-4, ma SelectedIndex è 0-3 -->
+                <Picker
+                    Title="Seleziona la risposta corretta"
+                    ItemsSource="{Binding PickerItems}"
+                    SelectedIndex="{Binding CorrectAnswerIndex, Mode=TwoWay}" WidthRequest="200"/>
+
+                <HorizontalStackLayout Spacing="12" Margin="0,12,0,0">
+                    <Button Text="Salva" Command="{Binding SaveCommand}" />
+                    <Button Text="Annulla" Command="{Binding CancelCommand}" />
+                </HorizontalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </ContentPage.Content>
+</ContentPage>

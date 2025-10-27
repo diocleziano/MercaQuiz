@@ -1,0 +1,27 @@
+﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MercaQuiz"
+             xmlns:conv="clr-namespace:MercaQuiz.Converters"
+             x:Class="MercaQuiz.App">
+    <Application.Resources>
+        <ResourceDictionary>
+            
+            <!-- Converters -->
+            <conv:NullToBoolConverter x:Key="NullToBoolConverter"/>
+            <conv:ZeroToInvisibleConverter x:Key="ZeroToInvisibleConverter"/>
+            <conv:BoolToTitleConverter x:Key="BoolToTitleConverter" />
+            <conv:HexToColorConverter x:Key="HexToColorConverter" />
+            <conv:HexToBrushConverter x:Key="HexToBrushConverter" />
+            <conv:BoolToSiNoConverter x:Key="BoolToSiNoConverter" />
+            <conv:IndicesEqualConverter x:Key="IndicesEqualConverter" />
+            <conv:CheckedToSelectionParamConverter x:Key="CheckedToSelectionParamConverter"/>
+            <conv:StringToColorConverter x:Key="StringToColorConverter"/>
+
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

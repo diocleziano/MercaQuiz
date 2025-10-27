@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MercaQuiz.MVVM.Views.AddEditMateriaPage"
+             xmlns:models="clr-namespace:MercaQuiz.MVVM.Models"
+             Title="{Binding IsEditMode, Converter={StaticResource BoolToTitleConverter}, ConverterParameter='Modifica|Nuova Materia'}">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Salva" Order="Primary" Priority="0" Command="{Binding SalvaCommand}" />
+        <ToolbarItem Text="Annulla" Order="Secondary" Priority="1" Command="{Binding AnnullaCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="16">
+
+            <!-- Sezione Dati Principali -->
+            <Border Stroke="{DynamicResource Gray300}" StrokeThickness="1" Padding="16">
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="12">
+
+                    <!-- Nome -->
+                    <Label Text="Nome *" VerticalTextAlignment="Center"/>
+                    <Entry Grid.Column="1" Text="{Binding Nome}" />
+
+                    <!-- Codice -->
+                    <Label Grid.Row="1" Text="Codice" VerticalTextAlignment="Center"/>
+                    <Entry Grid.Row="1" Grid.Column="1" Text="{Binding Codice}" />
+
+                    <!-- Facoltà -->
+                    <Label Grid.Row="2" Text="Facoltà" VerticalTextAlignment="Center"/>
+                    <Entry Grid.Row="2" Grid.Column="1" Text="{Binding Facolta}" />
+
+                    <!-- Anno accademico -->
+                    <Label Grid.Row="3" Text="Anno accademico" VerticalTextAlignment="Center"/>
+                    <Picker Grid.Row="3" Grid.Column="1" SelectedIndex="{Binding AnnoAccademico}">
+                        <Picker.ItemsSource>
+                            <x:Array Type="{x:Type x:Int32}">
+                                <x:Int32>0</x:Int32>
+                                <x:Int32>1</x:Int32>
+                                <x:Int32>2</x:Int32>
+                                <x:Int32>3</x:Int32>
+                            </x:Array>
+                        </Picker.ItemsSource>
+                    </Picker>
+
+                    <!-- Docente -->
+                    <Label Grid.Row="4" Text="Docente" VerticalTextAlignment="Center"/>
+                    <Entry Grid.Row="4" Grid.Column="1" Text="{Binding Docente}" />
+
+                    <!-- Crediti -->
+                    <Label Grid.Row="5" Text="Crediti (CFU)" VerticalTextAlignment="Center"/>
+                    <Entry Grid.Row="5" Grid.Column="1" Keyboard="Numeric" Text="{Binding Crediti, TargetNullValue=''}" />
+
+                    <!-- Colore -->
+                    <Label Grid.Row="6" Text="Colore HEX" VerticalTextAlignment="Center"/>
+                    <Entry Grid.Row="6" Grid.Column="1" Placeholder="#RRGGBB" Text="{Binding ColoreHex}" />
+
+                    <!-- Icona -->
+                    <Label Grid.Row="7" Text="Icona" VerticalTextAlignment="Center"/>
+                    <Entry Grid.Row="7" Grid.Column="1" Placeholder="es. 📚" Text="{Binding Icona}" />
+
+                    <!-- Note -->
+                    <Label Grid.Row="8" Text="Note" VerticalTextAlignment="Start"/>
+                    <Editor Grid.Row="8" Grid.Column="1" AutoSize="TextChanges" Text="{Binding Note}" />
+                </Grid>
+            </Border>
+
+            <!-- Sezione Stato Esame -->
+            <Border Stroke="{DynamicResource Gray300}" StrokeThickness="1" Padding="16">
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="12">
+
+                    <!-- Data prossimo esame -->
+                    <Label Text="Data prossimo esame" VerticalTextAlignment="Center"/>
+                    <HorizontalStackLayout Grid.Column="1" Spacing="8">
+                        <!--<Switch IsToggled="{Binding HasDataProssimoEsame}" />-->
+                        <DatePicker Date="{Binding DataProssimoEsame}" IsEnabled="True"/>
+                    </HorizontalStackLayout>
+
+                    <!-- Superato -->
+                    <Label Grid.Row="1" Text="Esame superato" VerticalTextAlignment="Center"/>
+                    <Switch Grid.Row="1" Grid.Column="1" IsToggled="{Binding IsSuperato}" />
+
+                    <!-- Numero tentativi -->
+                    <Label Grid.Row="2" Text="Numero tentativi" VerticalTextAlignment="Center"/>
+                    <Entry Grid.Row="2" Grid.Column="1" Keyboard="Numeric" Text="{Binding NumeroTentativi}" />
+
+                    <!-- Voto esame -->
+                    <Label Grid.Row="3" Text="Voto esame" VerticalTextAlignment="Center"/>
+                    <Entry Grid.Row="3" Grid.Column="1" Keyboard="Numeric" Text="{Binding VotoEsame}" />
+                </Grid>
+            </Border>
+
+            <!-- Sezione Statistiche Quiz -->
+            <Border Stroke="{DynamicResource Gray300}" StrokeThickness="1" Padding="16">
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                    <Grid ColumnDefinitions="Auto,*" RowSpacing="10" ColumnSpacing="12">
+                        <Label Text="Quiz effettuati" VerticalOptions="Center" />
+                        <Entry Grid.Column="1" Keyboard="Numeric" Text="{Binding NumeroQuizEffettuati}" />
+                    </Grid>
+                    <Grid Grid.Column="1" ColumnDefinitions="Auto,*" RowSpacing="10" ColumnSpacing="12">
+                        <Label Grid.Row="1" Text="Quiz superati" VerticalOptions="Center" />
+                        <Entry Grid.Row="1" Grid.Column="1" Keyboard="Numeric" Text="{Binding NumeroQuizSuperati}" />
+                    </Grid>
+                    <Grid Grid.Column="2" ColumnDefinitions="Auto,*" RowSpacing="10" ColumnSpacing="12">
+                        <Label Grid.Row="2" Text="Quiz falliti" VerticalOptions="Center"/>
+                        <Entry Grid.Row="2" Grid.Column="1" Keyboard="Numeric" Text="{Binding NumeroQuizFalliti}" />
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Flag vari -->
+            <HorizontalStackLayout Spacing="12">
+                <Label Text="Archiviata" VerticalTextAlignment="Center"/>
+                <Switch IsToggled="{Binding IsArchiviata}" />
+            </HorizontalStackLayout>
+
+            <!-- Sezione Domande -->
+            <Border Stroke="{DynamicResource Gray300}" StrokeThickness="1" Padding="16">
+                <VerticalStackLayout Spacing="12">
+
+                    <!-- Header: titolo + conteggio + aggiungi -->
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="Domande" FontAttributes="Bold" />
+                            <Label Text="{Binding DomandeCount, StringFormat='({0})'}" />
+                        </HorizontalStackLayout>
+
+                        <!-- Aggiungi domanda -->
+                        <Button Grid.Column="1"
+                    Text="Aggiungi domanda"
+                    Command="{Binding AggiungiDomandaCommand}" />
+                    </Grid>
+
+                    <!-- Elenco domande (mostra solo in modifica, quando esiste una materia) -->
+                    <CollectionView ItemsSource="{Binding Domande}" SelectionMode="None"
+                        IsVisible="{Binding IsEditMode}">
+                        <CollectionView.EmptyView>
+                            <Label Text="Nessuna domanda per questa materia." />
+                        </CollectionView.EmptyView>
+
+                        <CollectionView.ItemTemplate>
+                            <!-- usa il tuo namespace modelli se diverso -->
+                            <DataTemplate x:DataType="models:DomandaQuiz"
+                              xmlns:models="clr-namespace:MercaQuiz.MVVM.Models">
+                                <Border Padding="12" Margin="0,4" StrokeThickness="1" Stroke="{DynamicResource Gray300}">
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" RowDefinitions="Auto,Auto">
+
+                                        <!-- Testo domanda -->
+                                        <Label Grid.ColumnSpan="3" Text="{Binding Domanda}" FontAttributes="Bold" LineBreakMode="WordWrap" />
+
+                                        <!-- Risposta corretta -->
+                                        <Label Grid.Row="1" Text="{Binding RispostaCorrettaTesto}"
+                                   FontSize="12" TextColor="#555555" />
+
+                                        <!-- Azioni -->
+                                        <Button Grid.Column="1" Grid.Row="1" Text="Modifica"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ModificaDomandaCommand}"
+                                    CommandParameter="{Binding .}" />
+
+                                        <Button Grid.Column="2" Grid.Row="1" Text="Elimina"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EliminaDomandaCommand}"
+                                    CommandParameter="{Binding .}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                </VerticalStackLayout>
+            </Border>
+            
+            <!-- Azioni -->
+            <HorizontalStackLayout Spacing="12">
+                <Button Text="Salva" Command="{Binding SalvaCommand}" />
+                <Button Text="Annulla" Command="{Binding AnnullaCommand}" />
+            </HorizontalStackLayout>
+
+            
+            
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

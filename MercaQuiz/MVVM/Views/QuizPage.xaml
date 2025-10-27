@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MercaQuiz.MVVM.Views.QuizPage"
+             xmlns:vm="clr-namespace:MercaQuiz.MVVM.ViewModels"
+             xmlns:helper="clr-namespace:MercaQuiz.Helpers"
+             xmlns:conv="clr-namespace:MercaQuiz.Converters"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:DataType="vm:QuizViewModel"
+             x:Name="ThisPage"
+             Title="Quiz">
+
+    <!-- === Risorse pagina === -->
+    <ContentPage.Resources>
+        <!-- Converter usato dal MultiBinding dei RadioButton -->
+        <conv:IndicesEqualConverter x:Key="IndicesEqualConverter" />
+    </ContentPage.Resources>
+
+
+    <!-- === Layout pagina === -->
+    <Grid RowDefinitions="*,Auto" Padding="16">
+
+        <!-- LISTA DOMANDE -->
+        <CollectionView Grid.Row="0"
+                        ItemsSource="{Binding Domande}"
+                        SelectionMode="None"
+                        VerticalOptions="Fill"
+                        HorizontalOptions="Fill" ItemSizingStrategy="MeasureAllItems">
+
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="24" Spacing="8" HorizontalOptions="Center" VerticalOptions="Center">
+                    <Label Text="Nessuna domanda disponibile." FontAttributes="Bold" />
+                    <Label Text="Controlla il caricamento dati o i filtri." FontSize="12" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:QuizQuestionItem">
+                    <!-- diamo un nome al Border per poi referenziarlo -->
+                    <Border x:Name="Card"
+                Stroke="{DynamicResource Gray300}"
+                StrokeThickness="1"
+                Padding="12"
+                Margin="0,8"
+                StrokeShape="RoundRectangle 8">
+
+                        <VerticalStackLayout Spacing="10">
+
+                            <!-- Testo domanda -->
+                            <Border 
+                                Stroke="{Binding ColoreRisposta}"
+                                StrokeThickness="2"
+                                Padding="8"
+                                StrokeShape="RoundRectangle 12">
+                                <Label Text="{Binding DomandaConNumero}" FontAttributes="Bold"/>
+                            </Border>
+                            <Label Text="{Binding RispostaCorretta, StringFormat='Risposta Corretta: {0}'}" IsVisible="{Binding Source={x:Reference ThisPage}, Path=BindingContext.ShowAnswers}"/>
+
+                            <!-- Opzioni -->
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Opzioni}" Spacing="8">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:QuizOption">
+
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                            <!-- RADIO: niente behavior -->
+                                            <RadioButton GroupName="{Binding Source={x:Reference Card}, Path=BindingContext.QuestionId, StringFormat='q{0}'}" IsEnabled="False">
+                                                <!-- Si spunta in base a SelectedIndex -->
+                                                <RadioButton.IsChecked>
+                                                    <MultiBinding Mode="OneWay" Converter="{StaticResource IndicesEqualConverter}">
+                                                        <Binding Path="Index" />
+                                                        <!-- Index dell'opzione -->
+                                                        <Binding Source="{x:Reference Card}" Path="BindingContext.SelectedIndex" />
+                                                    </MultiBinding>
+                                                </RadioButton.IsChecked>
+                                            </RadioButton>
+
+                                            <!-- Testo -->
+                                            <Label Grid.Column="1" Text="{Binding Text}" VerticalTextAlignment="Center" />
+
+                                            <!-- TAPPARE OVUNQUE SULLA RIGA SELEZIONA L’OPZIONE -->
+                                            <Grid.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.SelezionaCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            </Grid.GestureRecognizers>
+                                        </Grid>
+                                        
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- BOTTONI AZIONE -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="12" Padding="8,0,8,8">
+            <Label Text="{Binding Domande.Count, StringFormat='Domande: {0}'}"
+                   VerticalTextAlignment="Center" />
+            <Button Grid.Column="1"
+                    Text="Conferma e termina"
+                    Command="{Binding FineCommand}" />
+        </Grid>
+    </Grid>
+</ContentPage>

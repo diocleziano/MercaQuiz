@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MercaQuiz.MVVM.Views.AddEditDomandaPage"
+             xmlns:vm="clr-namespace:MercaQuiz.MVVM.ViewModels"
+             xmlns:conv="clr-namespace:MercaQuiz.Converters"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:DataType="vm:AddEditDomandaViewModel"
+             x:Name="ThisPage"
+             Title="Domanda">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Salva" Order="Primary" Priority="0" Command="{Binding SalvaCommand}" />
+        <ToolbarItem Text="Annulla" Order="Secondary" Priority="1" Command="{Binding AnnullaCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- 🔴 CONVERTER -->
+            <conv:IntEqualsConverter x:Key="IntEqualsConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <VerticalStackLayout>
+        <VerticalStackLayout Padding="16" Spacing="12">
+            <Label Text="Testo grezzo" FontAttributes="Bold"/>
+            <Editor x:Name="RawTextEditor"
+                    HeightRequest="180"
+                    Text="{Binding RawText, Mode=TwoWay}"
+                    Placeholder="Incolla qui domanda + 4 risposte numerate..." />
+
+            <Label Text="Domanda" FontAttributes="Bold"/>
+            <Editor Text="{Binding Question, Mode=TwoWay}" AutoSize="TextChanges"/>
+
+            <Label Text="Risposte" FontAttributes="Bold"/>
+            <!-- Risposta 1 (indice 0) -->
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                <RadioButton GroupName="corretta">
+                    <RadioButton.Behaviors>
+                        <toolkit:EventToCommandBehavior
+          EventName="CheckedChanged"
+          Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.SegnaCorrettaIndexCommand}"
+          CommandParameter="{x:Int32 0}" />
+                    </RadioButton.Behaviors>
+
+                    <RadioButton.IsChecked>
+                        <Binding Source="{x:Reference ThisPage}"
+               Path="BindingContext.RispostaCorrettaIndex"
+               Converter="{StaticResource IntEqualsConverter}"
+               ConverterParameter="0"
+               Mode="OneWay" />
+                    </RadioButton.IsChecked>
+                </RadioButton>
+                <Entry Grid.Column="1" Placeholder="Risposta 1" Text="{Binding Answer1, Mode=TwoWay}" />
+            </Grid>
+
+            <!-- Risposta 2 (indice 1) -->
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                <RadioButton GroupName="corretta">
+                    <RadioButton.Behaviors>
+                        <toolkit:EventToCommandBehavior
+          EventName="CheckedChanged"
+          Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.SegnaCorrettaIndexCommand}"
+          CommandParameter="{x:Int32 1}" />
+                    </RadioButton.Behaviors>
+                    <RadioButton.IsChecked>
+                        <Binding Source="{x:Reference ThisPage}"
+               Path="BindingContext.RispostaCorrettaIndex"
+               Converter="{StaticResource IntEqualsConverter}"
+               ConverterParameter="1"
+               Mode="OneWay" />
+                    </RadioButton.IsChecked>
+                </RadioButton>
+                <Entry Grid.Column="1" Placeholder="Risposta 2" Text="{Binding Answer2, Mode=TwoWay}" />
+            </Grid>
+
+            <!-- Risposta 3 (indice 2) -->
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                <RadioButton GroupName="corretta">
+                    <RadioButton.Behaviors>
+                        <toolkit:EventToCommandBehavior
+          EventName="CheckedChanged"
+          Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.SegnaCorrettaIndexCommand}"
+          CommandParameter="{x:Int32 2}" />
+                    </RadioButton.Behaviors>
+                    <RadioButton.IsChecked>
+                        <Binding Source="{x:Reference ThisPage}"
+               Path="BindingContext.RispostaCorrettaIndex"
+               Converter="{StaticResource IntEqualsConverter}"
+               ConverterParameter="2"
+               Mode="OneWay" />
+                    </RadioButton.IsChecked>
+                </RadioButton>
+                <Entry Grid.Column="1" Placeholder="Risposta 3" Text="{Binding Answer3, Mode=TwoWay}" />
+            </Grid>
+
+            <!-- Risposta 4 (indice 3) -->
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                <RadioButton GroupName="corretta">
+                    <RadioButton.Behaviors>
+                        <toolkit:EventToCommandBehavior
+          EventName="CheckedChanged"
+          Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.SegnaCorrettaIndexCommand}"
+          CommandParameter="{x:Int32 3}" />
+                    </RadioButton.Behaviors>
+                    <RadioButton.IsChecked>
+                        <Binding Source="{x:Reference ThisPage}"
+               Path="BindingContext.RispostaCorrettaIndex"
+               Converter="{StaticResource IntEqualsConverter}"
+               ConverterParameter="3"
+               Mode="OneWay" />
+                    </RadioButton.IsChecked>
+                </RadioButton>
+                <Entry Grid.Column="1" Placeholder="Risposta 4" Text="{Binding Answer4, Mode=TwoWay}" />
+            </Grid>
+        </VerticalStackLayout>
+        <Button Text="SALVA" Command="{Binding SalvaCommand}" />
+    </VerticalStackLayout>
+    
+</ContentPage>
