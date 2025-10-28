@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MercaQuiz.MVVM.Views.SettingsPage"
+             Title="Impostazioni">
+    <ContentPage.Content>
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="12">
+                <Label Text="Percorso base (BasePath)" FontAttributes="Bold" />
+                <Entry Text="{Binding BasePath, Mode=TwoWay}" Placeholder="Percorso cartella dove salvare il DB" />
+
+                <Label Text="Nome file DB" FontAttributes="Bold" />
+                <Entry Text="{Binding DbFileName, Mode=TwoWay}" Placeholder="MercaQuiz.db3" />
+
+                <Label Text="Nota" FontAttributes="Italic" FontSize="Small" />
+                <Label Text="Dopo aver cambiato il percorso, riavvia l'app per riaprire la connessione al nuovo DB." />
+
+                <HorizontalStackLayout Spacing="12" Margin="0,12,0,0">
+                    <Button Text="Salva" Command="{Binding SaveCommand}" />
+                    <Button Text="Annulla" Command="{Binding CancelCommand}" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </ContentPage.Content>
+</ContentPage>

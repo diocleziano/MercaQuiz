@@ -54,7 +54,9 @@ public static class MauiProgram
         builder.Services.AddTransient<QuizViewModel>();
         builder.Services.AddTransient<QuizPage>();
 
-
+        // Nuove impostazioni
+        builder.Services.AddTransient<SettingsViewModel>();
+        builder.Services.AddTransient<SettingsPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
