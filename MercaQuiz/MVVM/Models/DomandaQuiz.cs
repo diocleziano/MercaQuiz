@@ -7,6 +7,16 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MercaQuiz.MVVM.Models;
+
+
+public enum TipoDomanda
+{
+    Nessuna = 0,
+    DomandaQuiz = 1,
+    DomandaFineLezione = 2
+}
+
+
 [Table("DomandeQuiz")]
 public class DomandaQuiz
 {
@@ -34,7 +44,7 @@ public class DomandaQuiz
 
     public int IndovinataNrVolte { get; set; } = 0;
 
-    public int TipologiaDomanda { get; set; } = 0; // 0 = domanda quiz, 1 = domanda fine lezione
+    public TipoDomanda TipologiaDomanda { get; set; } = TipoDomanda.DomandaQuiz; // 1 = domanda quiz, 2 = domanda fine lezione
 
     /// <summary>
     /// Stringa che indica a quale modulo appartiene la domanda nel caso in cui sia TipologiaDomanda = 1

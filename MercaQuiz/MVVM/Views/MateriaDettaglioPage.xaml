@@ -241,18 +241,24 @@
                         <CollectionView.ItemTemplate>
                             <!-- usa il tuo namespace modelli se diverso -->
                             <DataTemplate x:DataType="models:DomandaQuiz">
-                                <Border Padding="12" Margin="0,4" StrokeThickness="1" Stroke="{DynamicResource Gray300}">
-                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="8" RowDefinitions="Auto,Auto">
+                                <Border Padding="12" Margin="0,4" StrokeThickness="1" Stroke="{DynamicResource Gray300}" BackgroundColor="LightGray">
+                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="20" RowDefinitions="Auto,Auto" >
 
                                         <!-- Testo domanda -->
-                                        <Label Grid.ColumnSpan="3" Text="{Binding Domanda}" FontAttributes="Bold" LineBreakMode="WordWrap" />
+                                        <Label Grid.ColumnSpan="3" Text="{Binding Domanda}" FontAttributes="Bold" LineBreakMode="WordWrap" TextColor="Black"/>
 
                                         <!-- Risposta corretta -->
                                         <Label Grid.Row="1" Text="{Binding RispostaCorrettaTesto}"
+                                            FontSize="12" TextColor="green" />
+                                        <Label Grid.RowSpan="2" Grid.Column="1" VerticalOptions="Center" Text="{Binding ModuloAppartenenza}"
+                                            FontSize="12" TextColor="Black"/>
+                                        <VerticalStackLayout Grid.RowSpan="2" Grid.Column="2" VerticalOptions="Center" >
+                                            <Label Grid.RowSpan="2" Grid.Column="1" VerticalOptions="Center" Text="Creata il"
+                                                FontSize="12" TextColor="#555555"/>
+                                        <Label VerticalOptions="Center" Text="{Binding CreatoIlUtc}"
                                             FontSize="12" TextColor="#555555" />
-                                        <Label Grid.RowSpan="2" Grid.Column="1" VerticalOptions="Center" Text="{Binding CreatoIlUtc}"
-                                            FontSize="12" TextColor="#555555" />
-                                        <VerticalStackLayout Grid.RowSpan="2" Grid.Column="2" VerticalOptions="Center">
+                                        </VerticalStackLayout>
+                                        <VerticalStackLayout Grid.RowSpan="2" Grid.Column="3" VerticalOptions="Center">
                                             <Label VerticalOptions="Center"
                                                 Text="{Binding IndovinataNrVolte, StringFormat='Nr. volte indovinata: {0}'}"
                                                 FontSize="12" TextColor="Green" />
@@ -263,13 +269,15 @@
 
 
                                         <!-- Azioni -->
-                                        <Button Grid.Column="3" Grid.RowSpan="2" Text="Modifica"
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ModificaDomandaCommand}"
-                                    CommandParameter="{Binding .}" />
+                                            <HorizontalStackLayout Grid.Column="4" Grid.RowSpan="2" Spacing="5">
+                                                <Button  Text="Modifica"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ModificaDomandaCommand}"
+                                                    CommandParameter="{Binding .}" />
 
-                                        <Button Grid.Column="4" Grid.RowSpan="2" Text="Elimina"
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EliminaDomandaCommand}"
-                                    CommandParameter="{Binding .}" />
+                                                <Button Text="Elimina"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EliminaDomandaCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            </HorizontalStackLayout>
                                     </Grid>
                                 </Border>
                             </DataTemplate>

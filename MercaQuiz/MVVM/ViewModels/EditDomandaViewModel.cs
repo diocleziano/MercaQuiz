@@ -21,6 +21,8 @@ public partial class EditDomandaViewModel: ObservableObject, IQueryAttributable
     [ObservableProperty] private string answer2 = string.Empty;
     [ObservableProperty] private string answer3 = string.Empty;
     [ObservableProperty] private string answer4 = string.Empty;
+
+    [ObservableProperty] private string moduloAppartenzaText = string.Empty;
     // Sempre 4 risposte in UI
     public ObservableCollection<string> Risposte { get; } =
         new ObservableCollection<string>(new[] { "", "", "", "" });
@@ -32,6 +34,21 @@ public partial class EditDomandaViewModel: ObservableObject, IQueryAttributable
     private int correctAnswerIndex; // 0..3
 
     private DomandaQuiz? _model; // originale dal DB
+
+    public List<string> TipoItems { get; } = new() { "Domanda Quiz", "Domanda Fine Lezione" };
+
+    [ObservableProperty]
+    private int selectedTipoIndex = 0; // 0 -> DomandaQuiz, 1 -> DomandaFineLezione
+
+    public TipoDomanda SelectedTipo => (TipoDomanda)Math.Clamp(SelectedTipoIndex + 1, 1, 2);
+
+    partial void OnSelectedTipoIndexChanged(int value)
+    {
+        OnPropertyChanged(nameof(IsFineLezione));
+    }
+
+    public bool IsFineLezione => SelectedTipo == TipoDomanda.DomandaFineLezione;
+
 
     public EditDomandaViewModel(DomandeQuizRepository repo)
     {
@@ -60,7 +77,8 @@ public partial class EditDomandaViewModel: ObservableObject, IQueryAttributable
         }
 
         Domanda = _model.Domanda ?? string.Empty;
-
+        ModuloAppartenzaText = _model.ModuloAppartenenza ?? string.Empty;
+        SelectedTipoIndex = (int)_model.TipologiaDomanda - 1;
         
         Answer1 = _model.Risposte.ElementAtOrDefault(0) ?? string.Empty;
         Answer2 = _model.Risposte.ElementAtOrDefault(1) ?? string.Empty;
@@ -119,8 +137,9 @@ public partial class EditDomandaViewModel: ObservableObject, IQueryAttributable
             return;
         }
 
-        
 
+        _model.TipologiaDomanda = SelectedTipo;
+        _model.ModuloAppartenenza = ModuloAppartenzaText.Trim();
         _model.Domanda = Domanda.Trim();
         _model.Risposte = answers;
         _model.RispostaCorretta = CorrectAnswerIndex;

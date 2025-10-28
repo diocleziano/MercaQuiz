@@ -47,7 +47,9 @@ public class DomandeQuizRepository
                 }
             }
 
-            if (risposteUgualiPresenti)
+            bool domandaUguale = domandeForseUguali.Count(x => x.TipologiaDomanda == d.TipologiaDomanda) > 0 && risposteUgualiPresenti;
+
+            if (domandaUguale)
             {
                 throw new InvalidOperationException("Esiste già una domanda identica per questa materia.");
             }

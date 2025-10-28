@@ -7,11 +7,25 @@
         <ScrollView>
             <VerticalStackLayout Padding="16" Spacing="12">
 
+                
+
+                <!-- Nuovo: tipologia domanda -->
+                <Label Text="Tipologia domanda" />
+                <Picker ItemsSource="{Binding TipoItems}"
+                        SelectedIndex="{Binding SelectedTipoIndex, Mode=TwoWay}" WidthRequest="300" HorizontalOptions="Start" />
+
+                <Editor Placeholder="Modulo di appartenenza"
+                        Text="{Binding ModuloAppartenzaText, Mode=TwoWay}"
+                        IsVisible="{Binding IsFineLezione}" />
+
+                <Grid HeightRequest="1" BackgroundColor="DarkBlue"></Grid>
+
                 <Label Text="Testo della domanda" />
                 <Editor Text="{Binding Domanda, Mode=TwoWay}" AutoSize="TextChanges" />
 
+                <Grid HeightRequest="1" BackgroundColor="DarkBlue"></Grid>
+                
                 <Label Text="Risposte" />
-
                 <!-- 4 campi risposta -->
                 <StackLayout>
                     <Label Text="Risposta 1" VerticalTextAlignment="Center"/>
@@ -26,21 +40,7 @@
                     <Label Text="Risposta 4" VerticalTextAlignment="Center"/>
                     <Entry  Text="{Binding Answer4, Mode=TwoWay}"/>
                 </StackLayout>
-                <!--<Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
-                    <Label Grid.Row="0" Grid.Column="0" Text="Risposta 1" VerticalTextAlignment="Center"/>
-                    <Entry  Grid.Row="0" Grid.Column="1" Text="{Binding Risposte[0], Mode=TwoWay}" WidthRequest="300"/>
 
-                    <Label Grid.Row="1" Grid.Column="0" Text="Risposta 2" VerticalTextAlignment="Center"/>
-                    <Entry  Grid.Row="1" Grid.Column="1" Text="{Binding Risposte[1], Mode=TwoWay}" WidthRequest="300"/>
-
-                    <Label Grid.Row="2" Grid.Column="0" Text="Risposta 3" VerticalTextAlignment="Center"/>
-                    <Entry  Grid.Row="2" Grid.Column="1" Text="{Binding Risposte[2], Mode=TwoWay}" WidthRequest="300"/>
-
-                    <Label Grid.Row="3" Grid.Column="0" Text="Risposta 4" VerticalTextAlignment="Center"/>
-                    <Entry  Grid.Row="3" Grid.Column="1" Text="{Binding Risposte[3], Mode=TwoWay}" WidthRequest="300"/>
-                </Grid>-->
-
-                <!--<Label Text="Risposta corretta" />-->
                 <!-- Picker mostra 1-2-3-4, ma SelectedIndex è 0-3 -->
                 <Picker
                     Title="Seleziona la risposta corretta"

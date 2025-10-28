@@ -7,6 +7,7 @@ using MercaQuiz.MVVM.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -46,33 +47,83 @@ public partial class AddEditDomandaViewModel : ObservableObject
     [ObservableProperty] private string? answer3;
     [ObservableProperty] private string? answer4;
 
+    // Nuovi campi per tipologia e modulo
+    public List<string> TipoItems { get; } = new() { "Domanda Quiz", "Domanda Fine Lezione" };
+
+    [ObservableProperty]
+    private int selectedTipoIndex = 0; // 0 -> DomandaQuiz, 1 -> DomandaFineLezione
+
+    partial void OnSelectedTipoIndexChanged(int value)
+    {
+        OnPropertyChanged(nameof(IsFineLezione));
+        // Rerun parse quando cambio la tipologia (solo se ho testo grezzo incollato)
+        if (!string.IsNullOrWhiteSpace(RawText))
+        {
+            Parse();
+        }
+    }
+
+    public TipoDomanda SelectedTipo => (TipoDomanda)Math.Clamp(SelectedTipoIndex + 1, 1, 2);
+
+    public bool IsFineLezione => SelectedTipo == TipoDomanda.DomandaFineLezione;
+
+    [ObservableProperty]
+    private string moduloAppartenenza = string.Empty;
+
     partial void OnRawTextChanged(string? value) => Parse();
 
     [RelayCommand]
     private void Parse()
     {
-        var (q, answers) = ParseQA(RawText ?? string.Empty);
+        var (q, answers) = ParseQA(RawText ?? string.Empty, SelectedTipo);
 
         Question = q ?? string.Empty;
+
+        // Porta i risultati anche nei 4 campi “nuovi”
         Answer1 = answers.ElementAtOrDefault(0) ?? string.Empty;
         Answer2 = answers.ElementAtOrDefault(1) ?? string.Empty;
         Answer3 = answers.ElementAtOrDefault(2) ?? string.Empty;
         Answer4 = answers.ElementAtOrDefault(3) ?? string.Empty;
+
+        // Mantieni coerente anche la CollectionView “vecchia”
+        SyncAnswersToCollection(new[]
+        {
+        Answer1 ?? string.Empty,
+        Answer2 ?? string.Empty,
+        Answer3 ?? string.Empty,
+        Answer4 ?? string.Empty
+    });
     }
 
-    /// <summary>
-    /// Estrae domanda e 4 risposte dal testo incollato.
-    /// Rimuove prefissi numerici come "1", "1)", "1.", "1 -", "1:", "1\t", "(1)" ecc.
-    /// </summary>
-    private static (string Question, string[] Answers) ParseQA(string input)
+    private void SyncAnswersToCollection(IEnumerable<string> answers)
+    {
+        var arr = answers.ToArray();
+        EnsureAtLeastFourAnswers(); // garantisce 4 elementi nella collection
+
+        for (int i = 0; i < 4; i++)
+        {
+            var value = arr.ElementAtOrDefault(i) ?? string.Empty;
+            if (i < Risposte.Count)
+            {
+                Risposte[i].Text = value;
+            }
+            else
+            {
+                Risposte.Add(new AnswerItem { Index = i, Text = value });
+            }
+        }
+        for (int i = 0; i < Risposte.Count; i++) Risposte[i].Index = i;
+    }
+
+
+    private static (string Question, string[] Answers) ParseQA(string input, TipoDomanda tipo)
     {
         if (string.IsNullOrWhiteSpace(input))
             return (string.Empty, Array.Empty<string>());
 
-        // Normalizza e split
+        // Normalizzo e tolgo solo righe vuote (così gli indici restano stabili)
         var lines = input
-            .Replace("\r\n", "\n")
-            .Replace("\r", "\n")
+            .Replace("\r\n", "\n").Replace("\r", "\n")
             .Split('\n')
             .Select(l => l.Trim())
             .Where(l => !string.IsNullOrWhiteSpace(l))
@@ -81,49 +132,113 @@ public partial class AddEditDomandaViewModel : ObservableObject
         if (lines.Count == 0)
             return (string.Empty, Array.Empty<string>());
 
-        // Prima riga = domanda
+        // Domanda = prima riga (senza rimuovere nulla)
         var question = lines[0];
 
-        // Righe successive: cerca quelle "answer-like"
-        var rawAnswers = lines
-            .Skip(1)
-            .Where(IsLikelyAnswerLine)
-            .Take(4)
-            .Select(StripLeadingNumberToken)
-            .Select(s => s.Trim())
-            .ToList();
-
-        // Fallback: se non bastano, prendi le successive righe non vuote
-        if (rawAnswers.Count < 4)
+        if (tipo == TipoDomanda.DomandaQuiz)
         {
-            var fallback = lines
+            // Comportamento classico: numerate tipo 1., 2), ecc.
+            var rawAnswers = lines
                 .Skip(1)
-                .Where(l => !string.IsNullOrWhiteSpace(l))
-                .Select(StripLeadingNumberToken)
-                .Select(s => s.Trim())
+                .Where(IsLikelyAnswerLine)
                 .Take(4)
+                .Select(s => StripLeadingNumberToken(s).Trim())
                 .ToList();
 
-            rawAnswers = fallback;
+            if (rawAnswers.Count < 4)
+            {
+                rawAnswers = lines
+                    .Skip(1)
+                    .Select(s => StripLeadingNumberToken(s).Trim())
+                    .Where(s => s.Length > 0)
+                    .Take(4)
+                    .ToList();
+            }
+
+            while (rawAnswers.Count < 4) rawAnswers.Add(string.Empty);
+            return (question, rawAnswers.Take(4).ToArray());
         }
+        else // TipoDomanda.DomandaFineLezione
+        {
+            // ======= TENTATIVO POSIZIONALE =======
+            // Atteso: [0]=Q, [1]=Paragrafo..., [2]=A, [3]=AnsA, [4]=B, [5]=AnsB, [6]=C, [7]=AnsC, [8]=D, [9]=AnsD
+            bool looksPositional =
+                   lines.Count >= 10
+                && Regex.IsMatch(lines[2], @"^[A]$", RegexOptions.IgnoreCase)
+                && Regex.IsMatch(lines[4], @"^[B]$", RegexOptions.IgnoreCase)
+                && Regex.IsMatch(lines[6], @"^[C]$", RegexOptions.IgnoreCase)
+                && Regex.IsMatch(lines[8], @"^[D]$", RegexOptions.IgnoreCase);
 
-        // Padding a 4
-        while (rawAnswers.Count < 4) rawAnswers.Add(string.Empty);
+            if (looksPositional)
+            {
+                var ans = new[]
+                {
+                lines[3].Trim(),
+                lines[5].Trim(),
+                lines[7].Trim(),
+                lines[9].Trim()
+            };
+                return (question, ans);
+            }
 
-        return (question, rawAnswers.Take(4).ToArray());
+            // ======= FALLBACK A ETICHETTE A/B/C/D =======
+            var labelRx = new Regex(@"^\s*\(?([A-D])\)?[\.\):\-–]?\s*(.*)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var answers = new string[4]; // A=0, B=1, C=2, D=3
+            var found = new bool[4];
+
+            for (int i = 1; i < lines.Count; i++)
+            {
+                var m = labelRx.Match(lines[i]);
+                if (!m.Success) continue;
+
+                int idx = char.ToUpperInvariant(m.Groups[1].Value[0]) - 'A';
+                if (idx < 0 || idx > 3 || found[idx]) continue;
+
+                var inline = m.Groups[2].Value?.Trim();
+                if (!string.IsNullOrEmpty(inline))
+                {
+                    answers[idx] = inline;
+                    found[idx] = true;
+                }
+                else
+                {
+                    // testo sulla riga successiva “sostanziosa”
+                    var next = lines.Skip(i + 1)
+                                    .FirstOrDefault(s => !labelRx.IsMatch(s) && !string.IsNullOrWhiteSpace(s));
+                    answers[idx] = next?.Trim() ?? string.Empty;
+                    found[idx] = true;
+                }
+            }
+
+            // Se qualche slot manca, prova a completare con le prime righe utili dopo la domanda
+            if (found.Count(b => b) < 4)
+            {
+                var pool = lines.Skip(1)
+                                .Where(s => !labelRx.IsMatch(s))
+                                .Where(s => !string.IsNullOrWhiteSpace(s))
+                                .Select(s => s.Trim())
+                                .ToList();
+
+                int p = 0;
+                for (int k = 0; k < 4; k++)
+                {
+                    if (!found[k])
+                    {
+                        answers[k] = p < pool.Count ? pool[p++] : string.Empty;
+                    }
+                }
+            }
+
+            return (question, answers);
+        }
     }
 
     private static bool IsLikelyAnswerLine(string line)
     {
-        // Pattern tipici: "1", "1)", "1.", "1 -", "1:", "1\t", "(1)" + testo
-        return Regex.IsMatch(line, @"^\s*\(?\d{1,2}\)?\s*[\.\):\-–:]?\s+.+$")
-               || Regex.IsMatch(line, @"^\s*\d{1,2}\s+.+$")
-               || Regex.IsMatch(line, @"^\s*\d{1,2}\t+.+$");
+        return Regex.IsMatch(line, @"^\s*\(?\d{1,2}\)?\s*[\.\):\-–:]?\s+.+$");
     }
-
     private static string StripLeadingNumberToken(string line)
     {
-        // Rimuove prefissi numerici iniziali con vari separatori
         return Regex.Replace(line, @"^\s*\(?\d{1,2}\)?\s*[\.\):\-–:]?\s*", "").Trim();
     }
 
@@ -143,14 +258,17 @@ public partial class AddEditDomandaViewModel : ObservableObject
 
     private void EnsureAtLeastFourAnswers()
     {
-        if (Risposte.Count < 4)
-        {
-            var start = Risposte.Count;
-            for (int i = start; i < 4; i++)
-                Risposte.Add(new AnswerItem { Index = i, Text = string.Empty });
-        }
+        if (Risposte is null)
+            Risposte = new ObservableCollection<AnswerItem>();
+
+        var start = Risposte.Count;
+        for (int i = start; i < 4; i++)
+            Risposte.Add(new AnswerItem { Index = i, Text = string.Empty });
+
         for (int i = 0; i < Risposte.Count; i++) Risposte[i].Index = i;
-        if (RispostaCorrettaIndex < 0 || RispostaCorrettaIndex >= Risposte.Count) RispostaCorrettaIndex = 0;
+
+        if (RispostaCorrettaIndex < 0 || RispostaCorrettaIndex >= 4)
+            RispostaCorrettaIndex = 0;
     }
 
 
@@ -182,14 +300,25 @@ public partial class AddEditDomandaViewModel : ObservableObject
         Answer2 = d.Risposte.ElementAtOrDefault(1) ?? string.Empty;
         Answer3 = d.Risposte.ElementAtOrDefault(2) ?? string.Empty;
         Answer4 = d.Risposte.ElementAtOrDefault(3) ?? string.Empty;
+        // ✅ allinea anche la collection "vecchia"
+        SyncAnswersToCollection(new[]
+        {
+            Answer1 ?? string.Empty,
+            Answer2 ?? string.Empty,
+            Answer3 ?? string.Empty,
+            Answer4 ?? string.Empty
+        });
+        // Nuovi campi: tipologia e modulo
+        SelectedTipoIndex = Math.Clamp(((int)d.TipologiaDomanda) - 1, 0, TipoItems.Count - 1);
+        ModuloAppartenenza = d.ModuloAppartenenza ?? string.Empty;
     }
 
-   
+
 
     [RelayCommand]
     private void SegnaCorrettaIndex(int index)
     {
-        if (index < 0) return;
+        if (index < 0 || index > 3) return;
         RispostaCorrettaIndex = index;
     }
 
@@ -199,24 +328,29 @@ public partial class AddEditDomandaViewModel : ObservableObject
         // ✅ 1) Sincronizza i NUOVI campi → vecchi
         // Se stai usando la nuova UI, Question/AnswerX saranno valorizzati: usali.
         var domandaRaw = string.IsNullOrWhiteSpace(Question) ? (TestoDomanda ?? string.Empty) : Question!;
-        var answers = new List<string?>
+        // Preferisci sempre i 4 campi nuovi, trim e filtra vuoti
+        var answers = new[]
         {
-            string.IsNullOrWhiteSpace(Answer1) ? null : Answer1,
-            string.IsNullOrWhiteSpace(Answer2) ? null : Answer2,
-            string.IsNullOrWhiteSpace(Answer3) ? null : Answer3,
-            string.IsNullOrWhiteSpace(Answer4) ? null : Answer4,
-        }
+    Answer1?.Trim(), Answer2?.Trim(), Answer3?.Trim(), Answer4?.Trim()
+}
         .Where(s => !string.IsNullOrWhiteSpace(s))
-        .Select(s => s!.Trim())
+        .Select(s => s!)
         .ToList();
 
-        // Se per caso la UI “vecchia” (CollectionView) è usata, prova ad attingere da lì
-        if (answers.Count < 4 && Risposte?.Any() == true)
+        // Se mancano, prova dalla collection "vecchia"
+        if (answers.Count < 4 && (Risposte?.Any() == true))
         {
-            var fromCollection = Risposte.Select(r => (r.Text ?? string.Empty).Trim())
-                                         .Where(s => !string.IsNullOrWhiteSpace(s))
-                                         .ToList();
-            answers = fromCollection;
+            answers = Risposte
+                .Select(r => (r.Text ?? string.Empty).Trim())
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Take(4)
+                .ToList();
+
+            // e riallinea i campi nuovi se servisse
+            Answer1 = answers.ElementAtOrDefault(0) ?? string.Empty;
+            Answer2 = answers.ElementAtOrDefault(1) ?? string.Empty;
+            Answer3 = answers.ElementAtOrDefault(2) ?? string.Empty;
+            Answer4 = answers.ElementAtOrDefault(3) ?? string.Empty;
         }
 
         // ✅ 2) Validazioni minime
@@ -240,6 +374,8 @@ public partial class AddEditDomandaViewModel : ObservableObject
         var now = DateTime.UtcNow;
         DomandaQuiz entity;
 
+
+
         if (!IsEditMode) // INSERT
         {
             entity = new DomandaQuiz
@@ -249,7 +385,9 @@ public partial class AddEditDomandaViewModel : ObservableObject
                 Risposte = answers, // setter popola RisposteJson
                 RispostaCorretta = RispostaCorrettaIndex,
                 CreatoIlUtc = now,
-                AggiornatoIlUtc = now
+                AggiornatoIlUtc = now,
+                TipologiaDomanda = SelectedTipo,
+                ModuloAppartenenza = ModuloAppartenenza?.Trim() ?? string.Empty
             };
 
             try
@@ -279,6 +417,10 @@ public partial class AddEditDomandaViewModel : ObservableObject
             entity.RispostaCorretta = RispostaCorrettaIndex;
             entity.AggiornatoIlUtc = now;
 
+            // Nuovi campi: tipologia e modulo
+            entity.TipologiaDomanda = SelectedTipo;
+            entity.ModuloAppartenenza = ModuloAppartenenza?.Trim() ?? string.Empty;
+
             try
             {
                 entity.Validate();
@@ -307,5 +449,5 @@ public partial class AddEditDomandaViewModel : ObservableObject
     [RelayCommand]
     private async Task AnnullaAsync() => await Shell.Current.GoToAsync("..");
 
-    
+
 }

@@ -57,21 +57,38 @@ public partial class MateriaDettaglioViewModel : ObservableObject
 
 
 
-    private async Task LoadDomandeAsync(int tipoDomanda = -1)               // ⬅️
+    private async Task LoadDomandeAsync(TipoDomanda tipoDomanda = TipoDomanda.Nessuna)               // ⬅️
     {
         List<DomandaQuiz> list = null;
         var tutte = await _domandeRepo.GetByMateriaIdAsync(MateriaId);
 
-        if (tipoDomanda == -1)
+        if (tipoDomanda == TipoDomanda.Nessuna)
         {
             list = tutte;
         }
-        else
+        else if(tipoDomanda == TipoDomanda.DomandaFineLezione)
+        {
+            var soloTipologia = tutte.Where(x => x.TipologiaDomanda == tipoDomanda);
+            List<DomandaQuiz> soloTipologiaOrdinataPerModulo = soloTipologia
+                .OrderBy(x => x.ModuloAppartenenza)
+                .ThenBy(x =>
+                {
+                    // prende la parte prima del primo punto, prova a fare parse in int
+                    var first = (x.Domanda ?? string.Empty).Split(new[] { '.' }, 2)[0].Trim();
+                    if (int.TryParse(first, out var n))
+                        return (0, n); // primo campo 0 = ha numero, secondo il valore numerico
+                    return (1, int.MaxValue); // primo campo 1 = non numerico => viene dopo i numerici
+                })
+                .ThenBy(x => x.Domanda, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            list = soloTipologiaOrdinataPerModulo;
+        }
+        else if (tipoDomanda == TipoDomanda.DomandaQuiz)
         {
             list = tutte.Where(x => x.TipologiaDomanda == tipoDomanda).ToList();
         }
 
-        Domande = new ObservableCollection<DomandaQuiz>(list.OrderBy(d => d.Domanda));
+        Domande = new ObservableCollection<DomandaQuiz>(list);
         DomandeCount = Domande.Count;
     }
 
@@ -124,19 +141,19 @@ public partial class MateriaDettaglioViewModel : ObservableObject
     [RelayCommand]
     public async Task ShowDomandeQuiz()
     {
-        await LoadDomandeAsync(0);
+        await LoadDomandeAsync(TipoDomanda.DomandaQuiz);
     }
 
     [RelayCommand]
     public async Task ShowDomandeFineLezione()
     {
-        await LoadDomandeAsync(1);
+        await LoadDomandeAsync(TipoDomanda.DomandaFineLezione);
     }
 
     [RelayCommand]
     public async Task ShowTutteLeDomande()
     {
-        await LoadDomandeAsync();
+        await LoadDomandeAsync(TipoDomanda.Nessuna);
     }
 }
 

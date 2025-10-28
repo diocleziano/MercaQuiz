@@ -23,6 +23,18 @@
 
     <VerticalStackLayout>
         <VerticalStackLayout Padding="16" Spacing="12">
+            <!-- Nuovo: tipologia domanda -->
+            <Label Text="Tipologia domanda" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding TipoItems}"
+                    SelectedIndex="{Binding SelectedTipoIndex, Mode=TwoWay}"
+                    Title="Seleziona tipologia" />
+            
+            <!-- Se è Domanda Fine Lezione mostra editor per ModuloAppartenenza -->
+            <Label Text="Modulo" FontAttributes="Bold" IsVisible="{Binding IsFineLezione}"/>
+            <Editor Placeholder="Modulo di appartenenza"
+                    Text="{Binding ModuloAppartenenza, Mode=TwoWay}"
+                    IsVisible="{Binding IsFineLezione}" />
+            
             <Label Text="Testo grezzo" FontAttributes="Bold"/>
             <Editor x:Name="RawTextEditor"
                     HeightRequest="180"
@@ -31,6 +43,8 @@
 
             <Label Text="Domanda" FontAttributes="Bold"/>
             <Editor Text="{Binding Question, Mode=TwoWay}" AutoSize="TextChanges"/>
+
+
 
             <Label Text="Risposte" FontAttributes="Bold"/>
             <!-- Risposta 1 (indice 0) -->
