@@ -64,7 +64,7 @@ public partial class MateriaDettaglioViewModel : ObservableObject
 
         if (tipoDomanda == TipoDomanda.Nessuna)
         {
-            list = tutte;
+            list = tutte.OrderBy(x => x.Domanda).ToList();
         }
         else if(tipoDomanda == TipoDomanda.DomandaFineLezione)
         {
@@ -85,7 +85,7 @@ public partial class MateriaDettaglioViewModel : ObservableObject
         }
         else if (tipoDomanda == TipoDomanda.DomandaQuiz)
         {
-            list = tutte.Where(x => x.TipologiaDomanda == tipoDomanda).ToList();
+            list = tutte.Where(x => x.TipologiaDomanda == tipoDomanda).OrderBy(x => x.Domanda).ToList();
         }
 
         Domande = new ObservableCollection<DomandaQuiz>(list);
