@@ -79,7 +79,12 @@ public partial class MateriaDettaglioViewModel : ObservableObject
         {
             var soloTipologia = tutte.Where(x => x.TipologiaDomanda == tipoDomanda);
             List<DomandaQuiz> soloTipologiaOrdinataPerModulo = soloTipologia
-                .OrderBy(x => x.ModuloAppartenenza)
+                .OrderBy(x => {
+                    var first = (x.ModuloAppartenenza ?? string.Empty).Split(new[] { '-' },2)[0].Trim();
+                    if (int.TryParse(first, out var n))
+                        return (0, n);
+                    return (1, int.MaxValue);
+                })
                 .ThenBy(x =>
                 {
                     // prende la parte prima del primo punto, prova a fare parse in int

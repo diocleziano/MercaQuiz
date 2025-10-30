@@ -88,18 +88,7 @@
                                     Command="{Binding AvviaQuizCommand}" />
                             </Grid>
                         </Border>
-                        <!--<Border Stroke="{StaticResource Gray300}" StrokeThickness="1" Padding="16">
-                            <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center" ColumnSpacing="10">
-                                <HorizontalStackLayout Spacing="8">
-                                    <Label Text="Domande:" FontAttributes="Bold" VerticalOptions="Center"/>
-                                    <Label Text="{Binding DomandeCount}" VerticalOptions="Center"/>
-                                </HorizontalStackLayout>
-
-                                <Button Grid.Column="1"
-                    Text="Avvia quiz"
-                    Command="{Binding AvviaQuizCommand}" />
-                            </Grid>
-                        </Border>-->
+                       
                     </Grid>
 
                 </Grid>
@@ -192,6 +181,7 @@
                 </StackLayout>
             </toolkit:Expander>
 
+            <!-- Pulsanti filtro delle domande -->
             <Border Stroke="{DynamicResource Gray300}" StrokeThickness="1" Padding="16">
                 <VerticalStackLayout Spacing="5">
                     <Label Text="Tipologia domande" FontAttributes="Bold"></Label>
@@ -239,6 +229,8 @@
                         <!--<Button Text="Cancella" Command="{Binding ClearSearchCommand}" />-->
 
                     <!-- Elenco domande (mostra solo in modifica, quando esiste una materia) -->
+                    <StackLayout MaximumHeightRequest="800">
+                        <ScrollView HeightRequest="800">
                     <CollectionView ItemsSource="{Binding Domande}" SelectionMode="None"
                         IsVisible="{Binding IsEditMode}">
                         <CollectionView.EmptyView>
@@ -290,6 +282,9 @@
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
+                            
+                        </ScrollView>
+                    </StackLayout>
 
                 </VerticalStackLayout>
             </Border>
