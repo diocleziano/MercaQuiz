@@ -5,6 +5,9 @@ using MercaQuiz.Data.Repository;
 using MercaQuiz.MVVM.Models;
 using MercaQuiz.MVVM.Views;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MercaQuiz.MVVM.ViewModels;
 
@@ -17,9 +20,15 @@ public partial class MateriaDettaglioViewModel : ObservableObject
 
     [ObservableProperty] private Materia? record;
     [ObservableProperty] private int domandeCount;
+    // Domande visibili nella UI (filtered)
     [ObservableProperty] private ObservableCollection<DomandaQuiz> domande = new();
     [ObservableProperty] private int numeroDomandeRichieste = 30;   // ⬅️ default 30
 
+    // Nuova proprietà di ricerca -- al cambiare applica il filtro
+    [ObservableProperty] private string searchText = string.Empty;
+
+    // Lista completa in memoria usata per il filtering
+    private List<DomandaQuiz> _allDomande = new();
 
     public int MateriaId { get; private set; }
 
@@ -88,8 +97,36 @@ public partial class MateriaDettaglioViewModel : ObservableObject
             list = tutte.Where(x => x.TipologiaDomanda == tipoDomanda).OrderBy(x => x.Domanda).ToList();
         }
 
-        Domande = new ObservableCollection<DomandaQuiz>(list);
-        DomandeCount = Domande.Count;
+        // salva la lista completa e applica il filtro (eventuale SearchText)
+        _allDomande = list ?? new List<DomandaQuiz>();
+        ApplyFilter();
+    }
+
+    // Applica il filtro su _allDomande e aggiorna Domande e DomandeCount
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            Domande = new ObservableCollection<DomandaQuiz>(_allDomande);
+        }
+        else
+        {
+            var q = SearchText.Trim();
+            var matched = _allDomande.Where(d =>
+                (!string.IsNullOrEmpty(d.Domanda) && d.Domanda.IndexOf(q, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                || (!string.IsNullOrEmpty(d.RisposteJson) && d.Risposte.Any(r => !string.IsNullOrEmpty(r) && r.IndexOf(q, System.StringComparison.OrdinalIgnoreCase) >= 0))
+            ).ToList();
+
+            Domande = new ObservableCollection<DomandaQuiz>(matched);
+        }
+
+        DomandeCount = Domande?.Count ?? 0;
+    }
+
+    // Quando SearchText cambia, riapplica il filtro
+    partial void OnSearchTextChanged(string value)
+    {
+        ApplyFilter();
     }
 
     [RelayCommand]
@@ -154,6 +191,14 @@ public partial class MateriaDettaglioViewModel : ObservableObject
     public async Task ShowTutteLeDomande()
     {
         await LoadDomandeAsync(TipoDomanda.Nessuna);
+    }
+
+    // comando per cancellare la ricerca
+    [RelayCommand]
+    private void ClearSearch()
+    {
+        SearchText = string.Empty;
+        ApplyFilter();
     }
 }
 

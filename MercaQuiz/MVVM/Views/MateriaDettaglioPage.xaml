@@ -231,6 +231,13 @@
 
                     </Grid>
 
+                    <!-- Search bar -->
+                    <Label Text="Cerca" />
+                    <SearchBar Placeholder="Cerca domanda o risposta..."
+                                   Text="{Binding SearchText}" 
+                                    />
+                        <!--<Button Text="Cancella" Command="{Binding ClearSearchCommand}" />-->
+
                     <!-- Elenco domande (mostra solo in modifica, quando esiste una materia) -->
                     <CollectionView ItemsSource="{Binding Domande}" SelectionMode="None"
                         IsVisible="{Binding IsEditMode}">
