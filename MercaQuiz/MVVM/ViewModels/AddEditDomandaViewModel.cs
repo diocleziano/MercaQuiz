@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using MercaQuiz.Data.Repository;
+using MercaQuiz.Global;
 using MercaQuiz.Helpers;
 using MercaQuiz.MVVM.Models;
 using System;
@@ -248,6 +249,7 @@ public partial class AddEditDomandaViewModel : ObservableObject
         IsEditMode = false;
         // default: 4 righe vuote
         EnsureAtLeastFourAnswers();
+        //ModuloAppartenenza = AddDomandaGlobalData.ModuloDomanda ?? string.Empty;
     }
 
     public void InitForMateria(int materiaId)
@@ -311,9 +313,15 @@ public partial class AddEditDomandaViewModel : ObservableObject
         // Nuovi campi: tipologia e modulo
         SelectedTipoIndex = Math.Clamp(((int)d.TipologiaDomanda) - 1, 0, TipoItems.Count - 1);
         ModuloAppartenenza = d.ModuloAppartenenza ?? string.Empty;
+        AddDomandaGlobalData.ModuloDomanda = ModuloAppartenenza;
     }
 
-
+    [RelayCommand]
+    private void ImpostaModuloLezione()
+    {
+        if(!string.IsNullOrWhiteSpace(AddDomandaGlobalData.ModuloDomanda))
+            ModuloAppartenenza = AddDomandaGlobalData.ModuloDomanda;
+    }
 
     [RelayCommand]
     private void SegnaCorrettaIndex(int index)
@@ -331,8 +339,8 @@ public partial class AddEditDomandaViewModel : ObservableObject
         // Preferisci sempre i 4 campi nuovi, trim e filtra vuoti
         var answers = new[]
         {
-    Answer1?.Trim(), Answer2?.Trim(), Answer3?.Trim(), Answer4?.Trim()
-}
+            Answer1?.Trim(), Answer2?.Trim(), Answer3?.Trim(), Answer4?.Trim()
+        }
         .Where(s => !string.IsNullOrWhiteSpace(s))
         .Select(s => s!)
         .ToList();
@@ -393,6 +401,7 @@ public partial class AddEditDomandaViewModel : ObservableObject
             try
             {
                 entity.Validate();
+                AddDomandaGlobalData.ModuloDomanda = entity.ModuloAppartenenza;
                 await _repo.InsertAsync(entity); // firma reale senza ct
             }
             catch (Exception ex)

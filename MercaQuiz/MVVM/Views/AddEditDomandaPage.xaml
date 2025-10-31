@@ -31,9 +31,13 @@
             
             <!-- Se è Domanda Fine Lezione mostra editor per ModuloAppartenenza -->
             <Label Text="Modulo" FontAttributes="Bold" IsVisible="{Binding IsFineLezione}"/>
-            <Editor Placeholder="Modulo di appartenenza"
-                    Text="{Binding ModuloAppartenenza, Mode=TwoWay}"
-                    IsVisible="{Binding IsFineLezione}" />
+            <Grid IsVisible="{Binding IsFineLezione}" ColumnSpacing="10" ColumnDefinitions="Auto,*">
+                <Button Text="Copia Precedente"
+                    Command="{Binding ImpostaModuloLezioneCommand}"
+                     />
+                <Editor Placeholder="Modulo di appartenenza" Grid.Column="1"
+                    Text="{Binding ModuloAppartenenza, Mode=TwoWay}" />
+            </Grid>
             
             <Label Text="Testo grezzo" FontAttributes="Bold"/>
             <Editor x:Name="RawTextEditor"

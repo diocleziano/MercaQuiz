@@ -27,6 +27,20 @@ public partial class MateriaDettaglioViewModel : ObservableObject
     // Nuova proprietà di ricerca -- al cambiare applica il filtro
     [ObservableProperty] private string searchText = string.Empty;
 
+    // Proprietà IsLoading: implementata esplicitamente per assicurare la notifica
+    private bool _isLoading;
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set
+        {
+            if (SetProperty(ref _isLoading, value))
+                OnPropertyChanged(nameof(IsNotLoading)); ;
+        }
+    }
+
+    public bool IsNotLoading => !IsLoading;
+
     // Lista completa in memoria usata per il filtering
     private List<DomandaQuiz> _allDomande = new();
 
@@ -68,43 +82,52 @@ public partial class MateriaDettaglioViewModel : ObservableObject
 
     private async Task LoadDomandeAsync(TipoDomanda tipoDomanda = TipoDomanda.Nessuna)               // ⬅️
     {
-        List<DomandaQuiz> list = null;
-        var tutte = await _domandeRepo.GetByMateriaIdAsync(MateriaId);
+        IsLoading = true;
+        try
+        {
+            List<DomandaQuiz> list = null;
+            var tutte = await _domandeRepo.GetByMateriaIdAsync(MateriaId);
 
-        if (tipoDomanda == TipoDomanda.Nessuna)
-        {
-            list = tutte.OrderBy(x => x.Domanda).ToList();
-        }
-        else if(tipoDomanda == TipoDomanda.DomandaFineLezione)
-        {
-            var soloTipologia = tutte.Where(x => x.TipologiaDomanda == tipoDomanda);
-            List<DomandaQuiz> soloTipologiaOrdinataPerModulo = soloTipologia
-                .OrderBy(x => {
-                    var first = (x.ModuloAppartenenza ?? string.Empty).Split(new[] { '-' },2)[0].Trim();
-                    if (int.TryParse(first, out var n))
-                        return (0, n);
-                    return (1, int.MaxValue);
-                })
-                .ThenBy(x =>
-                {
-                    // prende la parte prima del primo punto, prova a fare parse in int
-                    var first = (x.Domanda ?? string.Empty).Split(new[] { '.' }, 2)[0].Trim();
-                    if (int.TryParse(first, out var n))
-                        return (0, n); // primo campo 0 = ha numero, secondo il valore numerico
-                    return (1, int.MaxValue); // primo campo 1 = non numerico => viene dopo i numerici
-                })
-                .ThenBy(x => x.Domanda, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-            list = soloTipologiaOrdinataPerModulo;
-        }
-        else if (tipoDomanda == TipoDomanda.DomandaQuiz)
-        {
-            list = tutte.Where(x => x.TipologiaDomanda == tipoDomanda).OrderBy(x => x.Domanda).ToList();
-        }
+            if (tipoDomanda == TipoDomanda.Nessuna)
+            {
+                list = tutte.OrderBy(x => x.Domanda).ToList();
+            }
+            else if (tipoDomanda == TipoDomanda.DomandaFineLezione)
+            {
+                var soloTipologia = tutte.Where(x => x.TipologiaDomanda == tipoDomanda);
+                List<DomandaQuiz> soloTipologiaOrdinataPerModulo = soloTipologia
+                    .OrderBy(x =>
+                    {
+                        var first = (x.ModuloAppartenenza ?? string.Empty).Split(new[] { '-' }, 2)[0].Trim();
+                        if (int.TryParse(first, out var n))
+                            return (0, n);
+                        return (1, int.MaxValue);
+                    })
+                    .ThenBy(x =>
+                    {
+                        // prende la parte prima del primo punto, prova a fare parse in int
+                        var first = (x.Domanda ?? string.Empty).Split(new[] { '.' }, 2)[0].Trim();
+                        if (int.TryParse(first, out var n))
+                            return (0, n); // primo campo 0 = ha numero, secondo il valore numerico
+                        return (1, int.MaxValue); // primo campo 1 = non numerico => viene dopo i numerici
+                    })
+                    .ThenBy(x => x.Domanda, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                list = soloTipologiaOrdinataPerModulo;
+            }
+            else if (tipoDomanda == TipoDomanda.DomandaQuiz)
+            {
+                list = tutte.Where(x => x.TipologiaDomanda == tipoDomanda).OrderBy(x => x.Domanda).ToList();
+            }
 
-        // salva la lista completa e applica il filtro (eventuale SearchText)
-        _allDomande = list ?? new List<DomandaQuiz>();
-        ApplyFilter();
+            // salva la lista completa e applica il filtro (eventuale SearchText)
+            _allDomande = list ?? new List<DomandaQuiz>();
+            ApplyFilter();
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     // Applica il filtro su _allDomande e aggiorna Domande e DomandeCount
