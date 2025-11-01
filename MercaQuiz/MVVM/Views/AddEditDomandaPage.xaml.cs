@@ -20,16 +20,8 @@ public partial class AddEditDomandaPage : ContentPage, IQueryAttributable
             await Shell.Current.DisplayAlert("Errore", "Parametro materiaId mancante.", "OK");
             return;
         }
-
-        if (BackendUtility.TryGetInt(query, "domandaId", out var domandaId))
-        {
-            await _vm.LoadForEditAsync(materiaId, domandaId);
-        }
-        else
-        {
-            _vm.InitForMateria(materiaId);
-        }
+        _vm.InitForMateria(materiaId);
     }
 
-    
+
 }

@@ -9,10 +9,10 @@
              x:Name="ThisPage"
              Title="Domanda">
 
-    <ContentPage.ToolbarItems>
+    <!--<ContentPage.ToolbarItems>
         <ToolbarItem Text="Salva" Order="Primary" Priority="0" Command="{Binding SalvaCommand}" />
         <ToolbarItem Text="Annulla" Order="Secondary" Priority="1" Command="{Binding AnnullaCommand}" />
-    </ContentPage.ToolbarItems>
+    </ContentPage.ToolbarItems>-->
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -28,7 +28,7 @@
             <Picker ItemsSource="{Binding TipoItems}"
                     SelectedIndex="{Binding SelectedTipoIndex, Mode=TwoWay}"
                     Title="Seleziona tipologia" />
-            
+
             <!-- Se è Domanda Fine Lezione mostra editor per ModuloAppartenenza -->
             <Label Text="Modulo" FontAttributes="Bold" IsVisible="{Binding IsFineLezione}"/>
             <Grid IsVisible="{Binding IsFineLezione}" ColumnSpacing="10" ColumnDefinitions="Auto,*">
@@ -38,7 +38,7 @@
                 <Editor Placeholder="Modulo di appartenenza" Grid.Column="1"
                     Text="{Binding ModuloAppartenenza, Mode=TwoWay}" />
             </Grid>
-            
+
             <Label Text="Testo grezzo" FontAttributes="Bold"/>
             <Editor x:Name="RawTextEditor"
                     HeightRequest="180"
@@ -132,7 +132,11 @@
                 <Entry Grid.Column="1" Placeholder="Risposta 4" Text="{Binding Answer4, Mode=TwoWay}" />
             </Grid>
         </VerticalStackLayout>
-        <Button Text="SALVA" Command="{Binding SalvaCommand}" />
+        <Grid ColumnDefinitions="*,*">
+            <Button Grid.Column="0" Text="SALVA" Command="{Binding SalvaCommand}" />
+            <Button Grid.Column="1" Text="Salva e Continua" Command="{Binding SalvaENuovaCommand}" />
+
+        </Grid>
     </VerticalStackLayout>
-    
+
 </ContentPage>

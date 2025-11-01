@@ -38,7 +38,6 @@ public partial class AddEditDomandaViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<AnswerItem> risposte = new();
 
     [ObservableProperty] private int rispostaCorrettaIndex = 0; // 0-based
-    [ObservableProperty] private bool isEditMode;
     [ObservableProperty] private int domandaId; // per eventuale modifica futura
 
     [ObservableProperty] private string? rawText;
@@ -246,7 +245,6 @@ public partial class AddEditDomandaViewModel : ObservableObject
     public AddEditDomandaViewModel(DomandeQuizRepository repo)
     {
         _repo = repo;
-        IsEditMode = false;
         // default: 4 righe vuote
         EnsureAtLeastFourAnswers();
         //ModuloAppartenenza = AddDomandaGlobalData.ModuloDomanda ?? string.Empty;
@@ -273,65 +271,37 @@ public partial class AddEditDomandaViewModel : ObservableObject
             RispostaCorrettaIndex = 0;
     }
 
-
-    public async Task LoadForEditAsync(int materiaId, int domandaId)
-    {
-        MateriaId = materiaId;
-        DomandaId = domandaId;
-        IsEditMode = true;
-
-        var d = await _repo.GetByIdAsync(domandaId);
-        if (d is null)
-        {
-            await Shell.Current.DisplayAlert("Errore", "Domanda non trovata.", "OK");
-            await Shell.Current.GoToAsync("..");
-            return;
-        }
-
-        // Vecchi campi (compatibilità con altre UI che già li usano)
-        TestoDomanda = d.Domanda;
-        Risposte = new ObservableCollection<AnswerItem>(
-            d.Risposte.Select((txt, i) => new AnswerItem { Index = i, Text = txt })
-        );
-        EnsureAtLeastFourAnswers();
-        RispostaCorrettaIndex = d.RispostaCorretta;
-
-        // ✅ Popola anche i NUOVI campi per la tua nuova UI
-        Question = d.Domanda;
-        Answer1 = d.Risposte.ElementAtOrDefault(0) ?? string.Empty;
-        Answer2 = d.Risposte.ElementAtOrDefault(1) ?? string.Empty;
-        Answer3 = d.Risposte.ElementAtOrDefault(2) ?? string.Empty;
-        Answer4 = d.Risposte.ElementAtOrDefault(3) ?? string.Empty;
-        // ✅ allinea anche la collection "vecchia"
-        SyncAnswersToCollection(new[]
-        {
-            Answer1 ?? string.Empty,
-            Answer2 ?? string.Empty,
-            Answer3 ?? string.Empty,
-            Answer4 ?? string.Empty
-        });
-        // Nuovi campi: tipologia e modulo
-        SelectedTipoIndex = Math.Clamp(((int)d.TipologiaDomanda) - 1, 0, TipoItems.Count - 1);
-        ModuloAppartenenza = d.ModuloAppartenenza ?? string.Empty;
-        AddDomandaGlobalData.ModuloDomanda = ModuloAppartenenza;
-    }
-
     [RelayCommand]
     private void ImpostaModuloLezione()
     {
-        if(!string.IsNullOrWhiteSpace(AddDomandaGlobalData.ModuloDomanda))
+        if (!string.IsNullOrWhiteSpace(AddDomandaGlobalData.ModuloDomanda))
             ModuloAppartenenza = AddDomandaGlobalData.ModuloDomanda;
     }
 
     [RelayCommand]
-    private void SegnaCorrettaIndex(int index)
+    private void SegnaCorrettaIndex(int? index)
     {
-        if (index < 0 || index > 3) return;
-        RispostaCorrettaIndex = index;
+        if (!index.HasValue) return;
+        var i = index.Value;
+        if (i <0 || i >3) return;
+        RispostaCorrettaIndex = i;
     }
 
+
     [RelayCommand]
-    private async Task SalvaAsync()
+    private async Task Salva()
+    {
+        await SaveAsync(false);
+    }
+
+
+    [RelayCommand]
+    private async Task SalvaENuova()
+    {
+        await SaveAsync(true);
+    }
+
+    private async Task SaveAsync(bool saveAndNew)
     {
         // ✅ 1) Sincronizza i NUOVI campi → vecchi
         // Se stai usando la nuova UI, Question/AnswerX saranno valorizzati: usali.
@@ -378,73 +348,61 @@ public partial class AddEditDomandaViewModel : ObservableObject
             RispostaCorrettaIndex = 0;
         }
 
+        //Inserimento 
+
         // ✅ 3) Mappa sull’entità
         var now = DateTime.UtcNow;
         DomandaQuiz entity;
-
-
-
-        if (!IsEditMode) // INSERT
+        entity = new DomandaQuiz
         {
-            entity = new DomandaQuiz
-            {
-                MateriaId = MateriaId,
-                Domanda = domandaRaw.Trim(),
-                Risposte = answers, // setter popola RisposteJson
-                RispostaCorretta = RispostaCorrettaIndex,
-                CreatoIlUtc = now,
-                AggiornatoIlUtc = now,
-                TipologiaDomanda = SelectedTipo,
-                ModuloAppartenenza = ModuloAppartenenza?.Trim() ?? string.Empty
-            };
+            MateriaId = MateriaId,
+            Domanda = domandaRaw.Trim(),
+            Risposte = answers, // setter popola RisposteJson
+            RispostaCorretta = RispostaCorrettaIndex,
+            CreatoIlUtc = now,
+            AggiornatoIlUtc = now,
+            TipologiaDomanda = SelectedTipo,
+            ModuloAppartenenza = ModuloAppartenenza?.Trim() ?? string.Empty
+        };
 
-            try
-            {
-                entity.Validate();
-                AddDomandaGlobalData.ModuloDomanda = entity.ModuloAppartenenza;
-                await _repo.InsertAsync(entity); // firma reale senza ct
-            }
-            catch (Exception ex)
-            {
+        try
+        {
+            entity.Validate();
+            AddDomandaGlobalData.ModuloDomanda = entity.ModuloAppartenenza;
+            await _repo.InsertAsync(entity); // firma reale senza ct
+        }
+        catch (Exception ex)
+        {
 #if DEBUG
-                await Shell.Current.DisplayAlert("Errore salvataggio", ex.Message, "OK");
+            await Shell.Current.DisplayAlert("Errore salvataggio", ex.Message, "OK");
 #endif
-                return;
-            }
+            return;
         }
-        else // UPDATE
+
+        if(!saveAndNew)
         {
-            entity = await _repo.GetByIdAsync(DomandaId);
-            if (entity is null)
-            {
-                await Shell.Current.DisplayAlert("Errore", "Domanda non trovata.", "OK");
-                return;
-            }
-
-            entity.Domanda = domandaRaw.Trim();
-            entity.Risposte = answers;
-            entity.RispostaCorretta = RispostaCorrettaIndex;
-            entity.AggiornatoIlUtc = now;
-
-            // Nuovi campi: tipologia e modulo
-            entity.TipologiaDomanda = SelectedTipo;
-            entity.ModuloAppartenenza = ModuloAppartenenza?.Trim() ?? string.Empty;
-
-            try
-            {
-                entity.Validate();
-                await _repo.UpdateAsync(entity); // firma reale senza ct
-            }
-            catch (Exception ex)
-            {
-                await Shell.Current.DisplayAlert("Errore salvataggio", ex.Message, "OK");
-                return;
-            }
+            // Notifica e chiudi
+            _messenger.Send(new DomandaChangedMessage(MateriaId));
+            await Shell.Current.GoToAsync("..");
+            return;
         }
-
-        // Notifica e chiudi
-        _messenger.Send(new DomandaChangedMessage(MateriaId));
-        await Shell.Current.GoToAsync("..");
+        else
+        {
+            // Notifica, resetta UI per nuova domanda
+            //_messenger.Send(new DomandaChangedMessage(MateriaId));
+            // Reset campi
+            TestoDomanda = string.Empty;
+            Risposte.Clear();
+            EnsureAtLeastFourAnswers();
+            //RispostaCorrettaIndex = 0;
+            // Nuovi campi
+            RawText = string.Empty;
+            Question = string.Empty;
+            Answer1 = string.Empty;
+            Answer2 = string.Empty;
+            Answer3 = string.Empty;
+            Answer4 = string.Empty;
+        }
     }
     // Helpers
     private static string NormalizeText(string s)
