@@ -4,6 +4,7 @@ using MercaQuiz.Converters;
 using MercaQuiz.Data.Repository;
 using System.Collections.ObjectModel;
 using Microsoft.Maui.Graphics;
+using MercaQuiz.MVVM.Models;
 
 namespace MercaQuiz.MVVM.ViewModels;
 
@@ -13,7 +14,7 @@ public partial class QuizOption : ObservableObject
     public int Index { get; set; }
 
     public int Indice { get => Index + 1; }
-    
+
     public string Text { get; set; } = string.Empty;
 
     // back-reference alla domanda
@@ -37,9 +38,9 @@ public partial class QuizQuestionItem : ObservableObject
 
     [ObservableProperty] private Color coloreRisposta = Colors.Transparent;
 
-    public int RispostaCorretta => CorrectIndex + 1; // 1-based per UI
+    public int RispostaCorretta => CorrectIndex + 1; //1-based per UI
 
-    [ObservableProperty] private int selectedIndex = -1;  // -1 = non risposto
+    [ObservableProperty] private int selectedIndex = -1; // -1 = non risposto
 }
 
 public partial class QuizViewModel : ObservableObject
@@ -58,7 +59,8 @@ public partial class QuizViewModel : ObservableObject
         _repo = repo;
     }
 
-    public async Task LoadAsync(int materiaId, int n)
+    // aggiunto parametro tipo per filtrare le domande
+    public async Task LoadAsync(int materiaId, int n, TipoDomanda tipo = TipoDomanda.Nessuna)
     {
         MateriaId = materiaId;
         N = Math.Max(1, n);
@@ -71,7 +73,21 @@ public partial class QuizViewModel : ObservableObject
             return;
         }
 
-        var pick = tutte.OrderBy(_ => _rng.Next()).Take(N).ToList();
+        // Applica filtro per tipologia se richiesto
+        List<DomandaQuiz> pool;
+        if (tipo == TipoDomanda.Nessuna)
+            pool = tutte.ToList();
+        else
+            pool = tutte.Where(d => d.TipologiaDomanda == tipo).ToList();
+
+        if (pool is null || pool.Count == 0)
+        {
+            await Shell.Current.DisplayAlert("Errore", "Nessuna domanda disponibile per la tipologia selezionata.", "OK");
+            await Shell.Current.GoToAsync("..");
+            return;
+        }
+
+        var pick = pool.OrderBy(_ => _rng.Next()).Take(N).ToList();
 
         // Preparo i nuovi item
         var items = new ObservableCollection<QuizQuestionItem>();
@@ -88,8 +104,8 @@ public partial class QuizViewModel : ObservableObject
             };
             numeroDomanda++;
             var opts = d.Risposte
-                .Select((t, i) => new QuizOption { Index = i, Text = t, Parent = qItem })
-                .ToList();
+            .Select((t, i) => new QuizOption { Index = i, Text = t, Parent = qItem })
+            .ToList();
 
             qItem.Opzioni = new ObservableCollection<QuizOption>(opts);
             items.Add(qItem);
@@ -103,22 +119,6 @@ public partial class QuizViewModel : ObservableObject
         });
     }
 
-    //[RelayCommand]
-    //private void Seleziona((QuizQuestionItem? q, QuizOption? opt) args)
-    //{
-    //    var (q, opt) = args;
-    //    if (q is null || opt is null) return;
-    //    q.SelectedIndex = opt.Index;
-    //}
-
-    //private void Seleziona(object? param)
-    //{
-    //    if (param is not SelectionParam sp) return;
-    //    if (sp.Question is null || sp.Option is null) return;
-
-    //    sp.Question.SelectedIndex = sp.Option.Index;
-    //}
-
     [RelayCommand]
     private void Seleziona(QuizOption? opt)
     {
@@ -130,10 +130,7 @@ public partial class QuizViewModel : ObservableObject
     private async Task FineAsync()
     {
         if (Domande.Count == 0) return;
-        var X = Domande.Where(x => x.Testo.Contains("All'aumentare della")).ToList();
 
-        //coloro il testo a seconda se ho indovinato o sbagliato la risposta
-        //transparent base: #ffffff00, rosso: #CC0000, VERDE: #248f24
         foreach (var item in Domande)
         {
             if (item.CorrectIndex == item.SelectedIndex)
@@ -154,12 +151,10 @@ public partial class QuizViewModel : ObservableObject
         var superato = corrette >= nrDomandeDaIndovinare;
 
         var msg = $"Risultato: {corrette} corrette, {sbagliate} sbagliate.\n" +
-                  (superato ? $"✅ Test superato: {corrette}/{Domande.Count}" : $"❌ Test non superato {corrette}/{Domande.Count}. Devi indovinare {nrDomandeDaIndovinare} domande");
+        (superato ? $"✅ Test superato: {corrette}/{Domande.Count}" : $"❌ Test non superato {corrette}/{Domande.Count}. Devi indovinare {nrDomandeDaIndovinare} domande");
 
         await Shell.Current.DisplayAlert("Esito quiz", msg, "OK");
 
         ShowAnswers = true;
-        // (Opzionale) Torna alla materia
-        //await Shell.Current.GoToAsync("..");
     }
 }

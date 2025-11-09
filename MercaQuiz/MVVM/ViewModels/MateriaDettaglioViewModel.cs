@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace MercaQuiz.MVVM.ViewModels;
 
@@ -23,6 +24,23 @@ public partial class MateriaDettaglioViewModel : ObservableObject
     // Domande visibili nella UI (filtered)
     [ObservableProperty] private ObservableCollection<DomandaQuiz> domande = new();
     [ObservableProperty] private int numeroDomandeRichieste = 30;   // ⬅️ default 30
+
+    // Tipologia picker per filtro quiz
+    public List<string> TipologiaItems { get; } = new() { "Tutte", "Quiz", "Domande Fine Lezione" };
+
+    // selected index for the picker (0 = Tutte,1 = Quiz,2 = Domande Fine Lezione)
+    private int _selectedTipologiaIndex =0;
+    public int SelectedTipologiaIndex
+    {
+        get => _selectedTipologiaIndex;
+        set
+        {
+            if (SetProperty(ref _selectedTipologiaIndex, value))
+            {
+                // no immediate action here; value will be used when starting the quiz
+            }
+        }
+    }
 
     // Nuova proprietà di ricerca -- al cambiare applica il filtro
     [ObservableProperty] private string searchText = string.Empty;
@@ -78,16 +96,16 @@ public partial class MateriaDettaglioViewModel : ObservableObject
         await LoadDomandeAsync();
     }
 
-
-
-    private async Task LoadDomandeAsync(TipoDomanda tipoDomanda = TipoDomanda.Nessuna)               // ⬅️
+    [RelayCommand]
+    public async Task LoadDomandeAsync(TipoDomanda tipoDomanda = TipoDomanda.Nessuna)
     {
         IsLoading = true;
         try
         {
-            List<DomandaQuiz> list = null;
+            // Load all questions for this materia (no incremental paging)
             var tutte = await _domandeRepo.GetByMateriaIdAsync(MateriaId);
 
+            List<DomandaQuiz> list;
             if (tipoDomanda == TipoDomanda.Nessuna)
             {
                 list = tutte.OrderBy(x => x.Domanda).ToList();
@@ -105,17 +123,21 @@ public partial class MateriaDettaglioViewModel : ObservableObject
                     })
                     .ThenBy(x =>
                     {
-                        // prende la parte prima del primo punto, prova a fare parse in int
+                        var secondo = (x.ModuloAppartenenza ?? string.Empty).Split(new[] { '-' }, 2)[1].Trim();
+                        return secondo;
+                    })
+                    .ThenBy(x =>
+                    {
                         var first = (x.Domanda ?? string.Empty).Split(new[] { '.' }, 2)[0].Trim();
                         if (int.TryParse(first, out var n))
-                            return (0, n); // primo campo 0 = ha numero, secondo il valore numerico
-                        return (1, int.MaxValue); // primo campo 1 = non numerico => viene dopo i numerici
+                            return (0, n);
+                        return (1, int.MaxValue);
                     })
                     .ThenBy(x => x.Domanda, StringComparer.OrdinalIgnoreCase)
                     .ToList();
                 list = soloTipologiaOrdinataPerModulo;
             }
-            else if (tipoDomanda == TipoDomanda.DomandaQuiz)
+            else // TipoDomanda.DomandaQuiz
             {
                 list = tutte.Where(x => x.TipologiaDomanda == tipoDomanda).OrderBy(x => x.Domanda).ToList();
             }
@@ -128,6 +150,14 @@ public partial class MateriaDettaglioViewModel : ObservableObject
         {
             IsLoading = false;
         }
+    }
+
+    // Keep a no-op LoadMore to satisfy any XAML bindings to RemainingItemsThresholdReachedCommand
+    [RelayCommand]
+    private Task LoadMoreDomandeAsync()
+    {
+        // incremental loading disabled — all items are already loaded by LoadDomandeAsync
+        return Task.CompletedTask;
     }
 
     // Applica il filtro su _allDomande e aggiorna Domande e DomandeCount
@@ -199,7 +229,17 @@ public partial class MateriaDettaglioViewModel : ObservableObject
         // N valido (min 1, max DomandeCount)
         var n = Math.Max(1, Math.Min(NumeroDomandeRichieste, DomandeCount));
 
-        await Shell.Current.GoToAsync($"quiz?materiaId={MateriaId}&n={n}");
+        // mappa selectedTipologiaIndex a TipoDomanda
+        TipoDomanda tipo;
+        switch (SelectedTipologiaIndex)
+        {
+            case 1: tipo = TipoDomanda.DomandaQuiz; break;
+            case 2: tipo = TipoDomanda.DomandaFineLezione; break;
+            default: tipo = TipoDomanda.Nessuna; break;
+        }
+
+        // passare tipo come parametro numerico (0= tutte,1=quiz,2=fine lezione)
+        await Shell.Current.GoToAsync($"quiz?materiaId={MateriaId}&n={n}&tipo={(int)tipo}");
     }
 
 
@@ -229,7 +269,6 @@ public partial class MateriaDettaglioViewModel : ObservableObject
         ApplyFilter();
     }
 }
-
 
 
 

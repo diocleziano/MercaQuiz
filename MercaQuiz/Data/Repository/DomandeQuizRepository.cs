@@ -75,6 +75,19 @@ public class DomandeQuizRepository
            .OrderBy(x => x.Id)
            .ToListAsync();
 
+    // New: paged query to support incremental loading
+    public Task<List<DomandaQuiz>> GetByMateriaIdPagedAsync(int materiaId, int limit, int offset)
+    {
+        // SQLite syntax: LIMIT {limit} OFFSET {offset}
+        return _db.QueryAsync<DomandaQuiz>("SELECT * FROM DomandeQuiz WHERE MateriaId = ? ORDER BY Id LIMIT ? OFFSET ?", materiaId, limit, offset);
+    }
+
+    // New overload: paged query with tipo filter
+    public Task<List<DomandaQuiz>> GetByMateriaIdPagedAsync(int materiaId, TipoDomanda tipo, int limit, int offset)
+    {
+        return _db.QueryAsync<DomandaQuiz>("SELECT * FROM DomandeQuiz WHERE MateriaId = ? AND TipologiaDomanda = ? ORDER BY Id LIMIT ? OFFSET ?", materiaId, (int)tipo, limit, offset);
+    }
+
     public Task<DomandaQuiz?> GetByIdAsync(int id) =>
         _db.Table<DomandaQuiz>().Where(x => x.Id == id).FirstOrDefaultAsync();
 

@@ -17,71 +17,104 @@
     <ContentPage.Content>
         <Grid RowDefinitions="Auto,*" Padding="16">
             <Label Text="Materie" FontSize="24" FontAttributes="Bold" />
-            <CollectionView Grid.Row="1"
+
+            <!-- Header + CollectionView -->
+            <VerticalStackLayout Grid.Row="1" Spacing="8">
+                <!-- Column headers -->
+                <Grid ColumnDefinitions="Auto,*,*,Auto" RowDefinitions="Auto" Padding="8" BackgroundColor="Transparent">
+                    <Label Grid.Column="0" Text="Materia" FontAttributes="Bold" HorizontalOptions="Center" />
+                    <Label Grid.Column="1" Text="Esame" FontAttributes="Bold" HorizontalOptions="End" />
+                    <Label Grid.Column="2" Text="" FontAttributes="Bold" HorizontalOptions="Center" />
+                    <Label Grid.Column="3" Text="Azioni" FontAttributes="Bold" HorizontalOptions="Center" />
+                </Grid>
+
+                <CollectionView
                             ItemsSource="{Binding Materie}"
                             SelectionMode="None">
-                <CollectionView.EmptyView>
-                    <VerticalStackLayout Padding="24" Spacing="8" HorizontalOptions="Center" VerticalOptions="Center">
-                        <Label Text="Nessuna materia" FontAttributes="Bold" />
-                        <Label Text="Tocca Aggiungi per creare la prima materia." />
-                    </VerticalStackLayout>
-                </CollectionView.EmptyView>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:Materia">
-                        <Border Margin="0,8" Padding="12">
-                            <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
-                                <Border Grid.RowSpan="2"
-                                    WidthRequest="44" HeightRequest="44"
-                                    BackgroundColor="Transparent"
-                                    Stroke="{Binding ColoreHex, Converter={StaticResource HexToColorConverter}}"
-                                    StrokeThickness="2">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="22" />
-                                    </Border.StrokeShape>
-                                    <Grid>
-                                        <Label Text="{Binding Icona}" FontSize="22"
-                                            HorizontalOptions="Center" VerticalOptions="Center"
-                                            TextColor="{Binding ColoreHex, Converter={StaticResource HexToColorConverter}}">
-                                            <Label.Triggers>
-                                                <DataTrigger TargetType="Label" Binding="{Binding Icona}" Value="{x:Null}">
-                                                    <Setter Property="Text" Value="📚" />
-                                                </DataTrigger>
-                                                <DataTrigger TargetType="Label" Binding="{Binding Icona}" Value="">
-                                                    <Setter Property="Text" Value="📚" />
-                                                </DataTrigger>
-                                            </Label.Triggers>
-                                        </Label>
-                                    </Grid>
-                                </Border>
-                                <!-- Info materia -->
-                                <VerticalStackLayout Grid.Column="1" Grid.RowSpan="2" Spacing="2">
-                                    <Label Text="{Binding Nome}" FontAttributes="Bold" FontSize="18"/>
-                                    <HorizontalStackLayout Spacing="8">
-                                        <Label Text="{Binding Docente}" IsVisible="{Binding Docente, Converter={StaticResource NullToBoolConverter}}"/>
-                                        <Label Text="{Binding Facolta}" IsVisible="{Binding Facolta, Converter={StaticResource NullToBoolConverter}}"/>
-                                        <Label Text="{Binding AnnoAccademico, StringFormat='Anno {0}'}"
-                                               IsVisible="{Binding AnnoAccademico, Converter={StaticResource ZeroToInvisibleConverter}}"/>
-                                    </HorizontalStackLayout>
-                                </VerticalStackLayout>
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout Padding="24" Spacing="8" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="Nessuna materia" FontAttributes="Bold" />
+                            <Label Text="Tocca Aggiungi per creare la prima materia." />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Materia">
+                            <Border Margin="0,8" Padding="12">
+                                <Grid ColumnDefinitions="Auto,*,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                                    <Border Grid.RowSpan="2"
+                                        WidthRequest="44" HeightRequest="44"
+                                        BackgroundColor="Transparent"
+                                        Stroke="{Binding ColoreHex, Converter={StaticResource HexToColorConverter}}"
+                                        StrokeThickness="2">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="22" />
+                                        </Border.StrokeShape>
+                                        <Grid>
+                                            <Label Text="{Binding Icona}" FontSize="22"
+                                                HorizontalOptions="Center" VerticalOptions="Center"
+                                                TextColor="{Binding ColoreHex, Converter={StaticResource HexToColorConverter}}">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding Icona}" Value="{x:Null}">
+                                                        <Setter Property="Text" Value="📚" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding Icona}" Value="">
+                                                        <Setter Property="Text" Value="📚" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                        </Grid>
+                                    </Border>
+                                    <!-- Info materia -->
+                                    <VerticalStackLayout Grid.Column="1" Grid.RowSpan="2" Spacing="2">
+                                        <Label Text="{Binding Nome}" FontAttributes="Bold" FontSize="18"/>
+                                        <HorizontalStackLayout Spacing="8">
+                                            <Label Text="{Binding Docente}" IsVisible="{Binding Docente, Converter={StaticResource NullToBoolConverter}}"/>
+                                            <Label Text="{Binding Facolta}" IsVisible="{Binding Facolta, Converter={StaticResource NullToBoolConverter}}"/>
+                                            <Label Text="{Binding AnnoAccademico, StringFormat='Anno {0}'}"
+                                                   IsVisible="{Binding AnnoAccademico, Converter={StaticResource ZeroToInvisibleConverter}}"/>
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
 
-                                <!-- Pulsanti -->
-                                <HorizontalStackLayout Grid.Column="2" Grid.Row="0" Spacing="6">
-                                    <Button Text="Apri"
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ApriCommand}"
-                                            CommandParameter="{Binding .}"/>
-                                    <Button Text="Modifica"
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ModificaCommand}"
-                                            CommandParameter="{Binding .}"/>
-                                    <Button Text="Elimina"
-                                            TextColor="Red"
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EliminaCommand}"
-                                            CommandParameter="{Binding .}"/>
-                                </HorizontalStackLayout>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                                    <!-- Flag superamento, voto e data esame -->
+                                    <Grid Grid.Column="2" Grid.RowSpan="2" ColumnDefinitions="*,*">
+
+                                        <Grid  RowDefinitions="*,*,*">
+                                            <Label FontSize="20" HorizontalOptions="Center" VerticalOptions="Center">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsSuperato}" Value="True">
+                                                        <Setter Property="Text" Value="✅" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsSuperato}" Value="False">
+                                                        <Setter Property="Text" Value="❌" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                            <Label Grid.Row="1" Text="{Binding VotoEsame, StringFormat='Voto: {0}'}" HorizontalOptions="Center" IsVisible="{Binding VotoEsame, Converter={StaticResource ZeroToInvisibleConverter}}" />
+                                        </Grid>
+                                        <!--<VerticalStackLayout Grid.Column="2" Grid.RowSpan="2" VerticalOptions="Center" HorizontalOptions="Center" Spacing="4">
+                                    </VerticalStackLayout>-->
+
+                                        <Label Grid.Column="1" VerticalOptions="Center" Text="{Binding DataProssimoEsame, StringFormat='Data esame: {0:dd/MM/yyyy}'}" HorizontalOptions="Center" IsVisible="{Binding DataProssimoEsame, Converter={StaticResource NullToBoolConverter}}" FontSize="12" TextColor="#666" />
+                                    </Grid>
+                                    <!-- Pulsanti -->
+                                    <HorizontalStackLayout Grid.Column="3" Grid.Row="0" Spacing="6">
+                                        <Button Text="Apri"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ApriCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                        <Button Text="Modifica"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ModificaCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                        <Button Text="Elimina"
+                                                TextColor="Red"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EliminaCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                    </HorizontalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
         </Grid>
     </ContentPage.Content>
 </ContentPage>

@@ -69,9 +69,9 @@
 
                     <!-- Data prossimo esame -->
                     <Label Text="Data prossimo esame" VerticalTextAlignment="Center"/>
-                    <HorizontalStackLayout Grid.Column="1" Spacing="8">
-                        <!--<Switch IsToggled="{Binding HasDataProssimoEsame}" />-->
-                        <DatePicker Date="{Binding DataProssimoEsame}" IsEnabled="True"/>
+                    <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                        <Switch IsToggled="{Binding HasDataProssimoEsame}" VerticalOptions="Center" />
+                        <DatePicker Date="{Binding DataProssimoEsame}" IsEnabled="{Binding HasDataProssimoEsame}" />
                     </HorizontalStackLayout>
 
                     <!-- Superato -->

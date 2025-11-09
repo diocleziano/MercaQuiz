@@ -7,296 +7,117 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:DataType="vm:MateriaDettaglioViewModel"
              Title="{Binding Materia.Nome}">
+    <!-- toolbar removed per user preference; add button in header instead -->
+
     <ContentPage.Resources>
         <ResourceDictionary>
             <Color x:Key="Gray300">#444444</Color>
         </ResourceDictionary>
     </ContentPage.Resources>
-    <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="16">
 
-            <Border Stroke="{StaticResource Gray300}" StrokeThickness="1" Padding="16">
-                <Grid RowDefinitions="Auto,Auto,Auto,Auto"
-                        ColumnDefinitions="Auto,*,Auto"
-                        ColumnSpacing="12" RowSpacing="8">
+    <ContentPage.Content>
+        <!-- Root grid: header (row 0 auto) + list area (row 1 star) -->
+        <Grid RowDefinitions="Auto,*" ColumnDefinitions="*" Padding="12" RowSpacing="10">
 
-                    <!-- Icona/colore -->
-                    <Border Grid.RowSpan="4"
-                            WidthRequest="56" HeightRequest="56"
-                            Background="Transparent"
-                            Stroke="{Binding Record.ColoreHex, Converter={StaticResource HexToBrushConverter}}"
-                            StrokeThickness="2">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="28" />
-                        </Border.StrokeShape>
-                        <Grid>
-                            <Label Text="{Binding Record.Icona}"
-                                FontSize="28"
-                                HorizontalOptions="Center"
-                                VerticalOptions="Center"
-                                TextColor="{Binding Record.ColoreHex, Converter={StaticResource HexToColorConverter}}">
-                                <!-- emoji di default -->
-                                <Label.Triggers>
-                                    <DataTrigger TargetType="Label" Binding="{Binding Record.Icona}" Value="{x:Null}">
-                                        <Setter Property="Text" Value="📚" />
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Label" Binding="{Binding Record.Icona}" Value="">
-                                        <Setter Property="Text" Value="📚" />
-                                    </DataTrigger>
-                                </Label.Triggers>
-                            </Label>
-                        </Grid>
-                    </Border>
+            <!-- Header area (row 0) -->
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,2*,*" ColumnSpacing="12" RowSpacing="6">
+                <!-- Icon -->
+                <Border Grid.Column="0" WidthRequest="56" HeightRequest="56" Stroke="{Binding Record.ColoreHex, Converter={StaticResource HexToBrushConverter}}" StrokeThickness="2" Background="Transparent">
+                    <Label Text="{Binding Record.Icona}" FontSize="28" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{Binding Record.ColoreHex, Converter={StaticResource HexToColorConverter}}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding Record.Icona}" Value="{x:Null}">
+                                <Setter Property="Text" Value="📚" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding Record.Icona}" Value="">
+                                <Setter Property="Text" Value="📚" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </Border>
 
-                    <Label Grid.Column="1"
-                        Text="{Binding Record.Nome}"
-                        FontSize="22"
-                        FontAttributes="Bold" />
-
-                    <Label Grid.Column="1" Grid.Row="1" Text="{Binding Record.Facolta}" />
-
-                    <HorizontalStackLayout Grid.Column="1" Grid.Row="2" Spacing="16">
-                        <Label Text="{Binding Record.Docente, StringFormat='Docente: {0}'}"
-                            IsVisible="{Binding Record.Docente, Converter={StaticResource NullToBoolConverter}}"/>
+                <!-- Main info -->
+                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                    <Label Text="{Binding Record.Nome}" FontSize="20" FontAttributes="Bold" />
+                    <HorizontalStackLayout Spacing="8">
+                        <Label Text="{Binding Record.Facolta}" IsVisible="{Binding Record.Facolta, Converter={StaticResource NullToBoolConverter}}" />
+                        <Label Text="{Binding Record.Docente, StringFormat='Docente: {0}'}" IsVisible="{Binding Record.Docente, Converter={StaticResource NullToBoolConverter}}" />
                         <Label Text="{Binding Record.AnnoAccademico, StringFormat='Anno: {0}'}" />
-                        <Label Text="{Binding Record.Crediti, StringFormat='CFU: {0}'}"
-                            IsVisible="{Binding Record.Crediti, Converter={StaticResource NullToBoolConverter}}"/>
-                    </HorizontalStackLayout>
-
-                    <Label Grid.Column="1" Grid.Row="3"
-                        Text="{Binding Record.Note}"
-                        LineBreakMode="WordWrap"
-                        IsVisible="{Binding Record.Note, Converter={StaticResource NullToBoolConverter}}"/>
-
-                    <!-- Domande: conteggio + aggiungi -->
-                    <Grid Grid.Column="2" Grid.RowSpan="4" VerticalOptions="Center">
-                        <Border Stroke="{DynamicResource Gray300}" StrokeThickness="1" Padding="16">
-                            <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,*" ColumnSpacing="12" VerticalOptions="Center">
-                                <Label Text="Genera quiz" FontAttributes="Bold" HorizontalOptions="Center" Grid.ColumnSpan="3" />
-                                <VerticalStackLayout Spacing="4" Grid.Row="1">
-                                    <Label Text="Numero di domande (default 30):" FontSize="12" TextColor="#666" />
-                                    <Entry WidthRequest="120" Keyboard="Numeric" Text="{Binding NumeroDomandeRichieste}" />
-                                </VerticalStackLayout>
-
-                                <Label Grid.Column="1" Grid.Row="1" Text="{Binding DomandeCount, StringFormat='Disponibili: {0}'}"
-           VerticalOptions="Center" />
-
-                                <Button Grid.Column="2" Grid.Row="1"
-                                    Text="Avvia quiz"
-                                        HorizontalOptions="Center"
-                                    VerticalOptions="Center"
-                                    Command="{Binding AvviaQuizCommand}" />
-                            </Grid>
-                        </Border>
-                       
-                    </Grid>
-
-                </Grid>
-            </Border>
-            <toolkit:Expander IsExpanded="False">
-                <toolkit:Expander.Header>
-                    <Label Text="Altri dettagli" FontSize="18" FontAttributes="Bold" />
-                </toolkit:Expander.Header>
-                <!-- Qui dentro metti la Grid (Opzione A) o la CollectionView (Opzione B) -->
-                <StackLayout Grid.Row="1" Spacing="5">
-
-                    <Grid ColumnDefinitions="120,*">
-                        <!-- Codice -->
-                        <Label Text="Codice" FontAttributes="Bold"
-                   IsVisible="{Binding Record.Codice, Converter={StaticResource NullToBoolConverter}}" />
-                        <Label Grid.Column="1" Text="{Binding Record.Codice}"
-                   IsVisible="{Binding Record.Codice, Converter={StaticResource NullToBoolConverter}}" />
-                    </Grid>
-                    <!-- Facoltà -->
-                    <Grid ColumnDefinitions="120,*">
-                        <Label Grid.Row="1" Text="Facoltà" FontAttributes="Bold"
-                   IsVisible="{Binding Record.Facolta, Converter={StaticResource NullToBoolConverter}}" />
-                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding Record.Facolta}"
-                   IsVisible="{Binding Record.Facolta, Converter={StaticResource NullToBoolConverter}}" />
-                    </Grid>
-                    <!-- Semestre -->
-                    <Grid ColumnDefinitions="120,*">
-                        <Label Grid.Row="2" Text="Note" FontAttributes="Bold"
-                   IsVisible="{Binding Record.Note, Converter={StaticResource NullToBoolConverter}}" />
-                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding Record.Note}"
-                   IsVisible="{Binding Record.Note, Converter={StaticResource NullToBoolConverter}}" />
-                    </Grid>
-                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
-                        <Label Text="Prossimo esame" FontAttributes="Bold"
-         IsVisible="{Binding Record.DataProssimoEsame, Converter={StaticResource NullToBoolConverter}}" />
-                        <Label Grid.Column="1"
-         Text="{Binding Record.DataProssimoEsame, StringFormat='{0:dd/MM/yyyy}'}"
-         IsVisible="{Binding Record.DataProssimoEsame, Converter={StaticResource NullToBoolConverter}}" />
-                    </Grid>
-                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
-                        <Label Text="Esame superato" FontAttributes="Bold"
-         IsVisible="{Binding Record.IsSuperato}" />
-                        <Label Grid.Column="1" Text="Sì"
-         IsVisible="{Binding Record.IsSuperato}" />
-                    </Grid>
-                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
-                        <Label Text="Esame superato" FontAttributes="Bold"/>
-                        <Label Grid.Column="1"
-         Text="{Binding Record.IsSuperato, Converter={StaticResource BoolToSiNoConverter}}" />
-                    </Grid>
-                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
-                        <Label Text="Tentativi" FontAttributes="Bold"
-         IsVisible="{Binding Record.NumeroTentativi, Converter={StaticResource ZeroToInvisibleConverter}}" />
-                        <Label Grid.Column="1" 
-         Text="{Binding Record.NumeroTentativi}"
-         IsVisible="{Binding Record.NumeroTentativi, Converter={StaticResource ZeroToInvisibleConverter}}" />
-                    </Grid>
-                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
-                        <Label Text="Voto esame" FontAttributes="Bold"
-         IsVisible="{Binding Record.VotoEsame, Converter={StaticResource ZeroToInvisibleConverter}}" />
-                        <Label Grid.Column="1"
-         Text="{Binding Record.VotoEsame}"
-         IsVisible="{Binding Record.VotoEsame, Converter={StaticResource ZeroToInvisibleConverter}}" />
-                    </Grid>
-
-                    <Grid ColumnDefinitions="*,*,*">
-
-                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
-                            <Label Text="Quiz effettuati" FontAttributes="Bold"
-         IsVisible="{Binding Record.NumeroQuizEffettuati, Converter={StaticResource ZeroToInvisibleConverter}}" />
-                            <Label Grid.Column="1"
-         Text="{Binding Record.NumeroQuizEffettuati}"
-         IsVisible="{Binding Record.NumeroQuizEffettuati, Converter={StaticResource ZeroToInvisibleConverter}}" />
-                        </Grid>
-                        <Grid Grid.Column="1" ColumnDefinitions="120,*" ColumnSpacing="8">
-                            <Label Text="Quiz superati" FontAttributes="Bold"
-         IsVisible="{Binding Record.NumeroQuizSuperati, Converter={StaticResource ZeroToInvisibleConverter}}" />
-                            <Label Grid.Column="1"
-         Text="{Binding Record.NumeroQuizSuperati}"
-         IsVisible="{Binding Record.NumeroQuizSuperati, Converter={StaticResource ZeroToInvisibleConverter}}" />
-                        </Grid>
-                        <Grid Grid.Column="2" ColumnDefinitions="120,*" ColumnSpacing="8">
-                            <Label Text="Quiz falliti" FontAttributes="Bold"
-         IsVisible="{Binding Record.NumeroQuizFalliti, Converter={StaticResource ZeroToInvisibleConverter}}" />
-                            <Label Grid.Column="1"
-         Text="{Binding Record.NumeroQuizFalliti}"
-         IsVisible="{Binding Record.NumeroQuizFalliti, Converter={StaticResource ZeroToInvisibleConverter}}" />
-                        </Grid>
-                    </Grid>
-                </StackLayout>
-            </toolkit:Expander>
-
-            <!-- Pulsanti filtro delle domande -->
-            <Border Stroke="{DynamicResource Gray300}" StrokeThickness="1" Padding="16">
-                <VerticalStackLayout Spacing="5">
-                    <Label Text="Tipologia domande" FontAttributes="Bold"></Label>
-                    <HorizontalStackLayout Spacing="20">
-                        <Button Grid.Column="1"
-                        Text="Tutte"
-                        Command="{Binding ShowTutteLeDomandeCommand}" />
-                        <Button Grid.Column="1"
-                        Text="Domande Fine Lezione"
-                        Command="{Binding ShowDomandeFineLezioneCommand}" />
-                        <!-- Aggiungi domanda -->
-                        <Button Grid.Column="2"
-                        Text="Domande Quiz"
-                        Command="{Binding ShowDomandeQuizCommand}" />
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
-            </Border>
-            <!-- Sezione Domande -->
-            <Border Stroke="{DynamicResource Gray300}" StrokeThickness="1" Padding="16">
-                <VerticalStackLayout Spacing="12">
 
-                    <!-- Header: titolo + conteggio + aggiungi -->
-                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
-                        <HorizontalStackLayout Spacing="8">
-                            <Label Text="Domande" FontAttributes="Bold" />
-                            <Label Text="{Binding DomandeCount, StringFormat='({0})'}" />
+                <!-- Right panel: quiz controls -->
+
+                <Border StrokeThickness="1" Grid.Column="2" Padding="10" HorizontalOptions="End">
+                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="QUIZ"/>
+                        <HorizontalStackLayout Spacing="6">
+                        <Label VerticalOptions="Center" Text="{Binding DomandeCount, StringFormat='Disponibili: {0}'}" HorizontalOptions="End" />
+                            <Entry WidthRequest="80" Keyboard="Numeric" Text="{Binding NumeroDomandeRichieste}" HorizontalOptions="End" />
+                            <Button Text="Avvia" Command="{Binding AvviaQuizCommand}" />
                         </HorizontalStackLayout>
+                        <Picker ItemsSource="{Binding TipologiaItems}" SelectedIndex="{Binding SelectedTipologiaIndex}" Title="Tipologia" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
 
-                        <!-- Aggiungi domanda -->
-                        <Button Grid.Column="1"
-                            Text="Reset Conteggi"
-                            Command="{Binding ResetConteggiCommand}" />
-                        <!-- Aggiungi domanda -->
-                        <Button Grid.Column="2"
-                            Text="Aggiungi domanda"
-                            Command="{Binding AggiungiDomandaCommand}" />
+            <!-- List area (row 1) -->
+            <Grid Grid.Row="1" RowDefinitions="Auto,*" RowSpacing="5">
+                <!-- Compact search + filter buttons row -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="5">
+                    <SearchBar Grid.Column="0" Placeholder="Cerca domanda o risposta..." Text="{Binding SearchText}" />
+                    <Button Grid.Column="1" Text="Tutte" Command="{Binding ShowTutteLeDomandeCommand}" />
+                    <Button Grid.Column="2" Text="Fine lezione" Command="{Binding ShowDomandeFineLezioneCommand}" />
+                    <Button Grid.Column="3" Text="Quiz" Command="{Binding ShowDomandeQuizCommand}" />
 
-                    </Grid>
+                    <!-- Right-side separate actions wrapped in a Border -->
+                    <Border Grid.Column="4" Stroke="{StaticResource Gray300}" StrokeThickness="1" Padding="6" BackgroundColor="Transparent" HorizontalOptions="End">
+                        <HorizontalStackLayout Spacing="8">
+                            <Button Text="Reset Conteggi" Command="{Binding ResetConteggiCommand}" />
+                            <Button Text="Aggiungi" Command="{Binding AggiungiDomandaCommand}" />
+                        </HorizontalStackLayout>
+                    </Border>
+                </Grid>
 
-                    <!-- Search bar -->
-                    <Label Text="Cerca" />
-                    <SearchBar Placeholder="Cerca domanda o risposta..."
-                                   Text="{Binding SearchText}" 
-                                    />
-                        <!--<Button Text="Cancella" Command="{Binding ClearSearchCommand}" />-->
+                <!-- CollectionView in star row -->
+                <CollectionView Grid.Row="1" ItemsSource="{Binding Domande}"
+                                SelectionMode="None"
+                                RemainingItemsThreshold="5"
+                                RemainingItemsThresholdReachedCommand="{Binding LoadMoreDomandeAsyncCommand}"
+                                VerticalOptions="FillAndExpand">
+                    <CollectionView.EmptyView>
+                        <Label Text="Nessuna domanda per questa materia." />
+                    </CollectionView.EmptyView>
 
-                    <!-- Elenco domande (mostra solo in modifica, quando esiste una materia) -->
-                    <StackLayout MaximumHeightRequest="800">
-                        <ScrollView MaximumHeightRequest="800">
-                    <Grid>
-                        <CollectionView ItemsSource="{Binding Domande}" SelectionMode="None" 
-                            IsVisible="{Binding IsNotLoading}">
-                            <CollectionView.EmptyView>
-                                <Label Text="Nessuna domanda per questa materia." />
-                            </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:DomandaQuiz">
+                            <Border Padding="12" Margin="0,4" StrokeThickness="1" Stroke="{StaticResource Gray300}" BackgroundColor="LightGray">
+                                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12">
+                                    <Label Grid.ColumnSpan="3" Text="{Binding Domanda}" FontAttributes="Bold" LineBreakMode="WordWrap" />
+                                    <Label Grid.Row="1" Text="{Binding RispostaCorrettaTesto}" FontSize="12" TextColor="Green" />
+                                    <Label Grid.RowSpan="2" Grid.Column="1" VerticalOptions="Center" Text="{Binding ModuloAppartenenza}" FontSize="12" TextColor="Black" />
+                                    <VerticalStackLayout Grid.RowSpan="2" Grid.Column="2" VerticalOptions="Center">
+                                        <Label Text="Creata il" FontSize="12" TextColor="#555555" />
+                                        <Label Text="{Binding CreatoIlUtc}" FontSize="12" TextColor="#555555" />
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.RowSpan="2" Grid.Column="3" VerticalOptions="Center">
+                                        <Label Text="{Binding IndovinataNrVolte, StringFormat='Nr. volte indovinata: {0}'}" FontSize="12" TextColor="Green" />
+                                        <Label Text="{Binding SbagliataNrVolte, StringFormat='Nr. volte sbagliata: {0}'}" FontSize="12" TextColor="DarkRed" />
+                                    </VerticalStackLayout>
 
-                            <CollectionView.ItemTemplate>
-                                <!-- usa il tuo namespace modelli se diverso -->
-                                <DataTemplate x:DataType="models:DomandaQuiz">
-                                    <Border Padding="12" Margin="0,4" StrokeThickness="1" Stroke="{DynamicResource Gray300}" BackgroundColor="LightGray">
-                                        <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="20" RowDefinitions="Auto,Auto" >
+                                    <HorizontalStackLayout Grid.Column="4" Grid.RowSpan="2" Spacing="6">
+                                        <Button Text="Modifica" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ModificaDomandaCommand}" CommandParameter="{Binding .}" />
+                                        <Button Text="Elimina" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EliminaDomandaCommand}" CommandParameter="{Binding .}" />
+                                    </HorizontalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
 
-                                            <!-- Testo domanda -->
-                                            <Label Grid.ColumnSpan="3" Text="{Binding Domanda}" FontAttributes="Bold" LineBreakMode="WordWrap" TextColor="Black"/>
-
-                                            <!-- Risposta corretta -->
-                                            <Label Grid.Row="1" Text="{Binding RispostaCorrettaTesto}"
-                                                FontSize="12" TextColor="green" />
-                                            <Label Grid.RowSpan="2" Grid.Column="1" VerticalOptions="Center" Text="{Binding ModuloAppartenenza}"
-                                                FontSize="12" TextColor="Black"/>
-                                            <VerticalStackLayout Grid.RowSpan="2" Grid.Column="2" VerticalOptions="Center" >
-                                                <Label Grid.RowSpan="2" Grid.Column="1" VerticalOptions="Center" Text="Creata il"
-                                                    FontSize="12" TextColor="#555555"/>
-                                            <Label VerticalOptions="Center" Text="{Binding CreatoIlUtc}"
-                                                FontSize="12" TextColor="#555555" />
-                                            </VerticalStackLayout>
-                                            <VerticalStackLayout Grid.RowSpan="2" Grid.Column="3" VerticalOptions="Center">
-                                                <Label VerticalOptions="Center"
-                                                    Text="{Binding IndovinataNrVolte, StringFormat='Nr. volte indovinata: {0}'}"
-                                                    FontSize="12" TextColor="Green" />
-                                                <Label VerticalOptions="Center"
-                                                    Text="{Binding SbagliataNrVolte, StringFormat='Nr. volte sbagliata: {0}'}"
-                                                    FontSize="12" TextColor="DarkRed" />
-                                            </VerticalStackLayout>
-
-
-                                            <!-- Azioni -->
-                                                <HorizontalStackLayout Grid.Column="4" Grid.RowSpan="2" Spacing="5">
-                                                    <Button  Text="Modifica"
-                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ModificaDomandaCommand}"
-                                                        CommandParameter="{Binding .}" />
-
-                                                    <Button Text="Elimina"
-                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EliminaDomandaCommand}"
-                                                        CommandParameter="{Binding .}" />
-                                                </HorizontalStackLayout>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-
-                        <!-- overlay quando loading -->
-                        <BoxView BackgroundColor="Transparent" IsVisible="{Binding IsLoading}" />
-                        <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" HorizontalOptions="Center" VerticalOptions="Center" />
-                    </Grid>
-                            
-                        </ScrollView>
-                    </StackLayout>
-
-                </VerticalStackLayout>
-            </Border>
-            <!-- (Facoltativo) spazio per futuro elenco/anteprima domande -->
-            <!--<CollectionView .../>-->
-
-        </VerticalStackLayout>
-    </ScrollView>
+                <!-- overlay when loading -->
+                <BoxView Grid.RowSpan="2" BackgroundColor="Transparent" IsVisible="{Binding IsLoading}" />
+                <ActivityIndicator Grid.RowSpan="2" IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" HorizontalOptions="Center" VerticalOptions="Center" />
+            </Grid>
+        </Grid>
+    </ContentPage.Content>
 </ContentPage>

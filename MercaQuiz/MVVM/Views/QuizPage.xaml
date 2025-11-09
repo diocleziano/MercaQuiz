@@ -25,6 +25,7 @@
                         ItemsSource="{Binding Domande}"
                         SelectionMode="None"
                         VerticalOptions="Fill"
+                        
                         HorizontalOptions="Fill" ItemSizingStrategy="MeasureAllItems">
 
             <CollectionView.EmptyView>
@@ -37,14 +38,13 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="vm:QuizQuestionItem">
                     <!-- diamo un nome al Border per poi referenziarlo -->
-                    <Border x:Name="Card"
+                    <Border x:Name="Card" 
                 Stroke="{DynamicResource Gray300}"
-                StrokeThickness="1"
-                Padding="12"
-                Margin="0,8"
-                StrokeShape="RoundRectangle 8">
+                StrokeThickness="4"
+                Padding="12"                
+                StrokeShape="RoundRectangle 8" >
 
-                        <VerticalStackLayout Spacing="10">
+                        <VerticalStackLayout Spacing="10" >
 
                             <!-- Testo domanda -->
                             <Border 
@@ -61,30 +61,33 @@
                                 <BindableLayout.ItemTemplate>
                                     <DataTemplate x:DataType="vm:QuizOption">
 
-                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                                            <!-- RADIO: niente behavior -->
-                                            <RadioButton GroupName="{Binding Source={x:Reference Card}, Path=BindingContext.QuestionId, StringFormat='q{0}'}" IsEnabled="False">
-                                                <!-- Si spunta in base a SelectedIndex -->
-                                                <RadioButton.IsChecked>
-                                                    <MultiBinding Mode="OneWay" Converter="{StaticResource IndicesEqualConverter}">
-                                                        <Binding Path="Index" />
-                                                        <!-- Index dell'opzione -->
-                                                        <Binding Source="{x:Reference Card}" Path="BindingContext.SelectedIndex" />
-                                                    </MultiBinding>
-                                                </RadioButton.IsChecked>
-                                            </RadioButton>
+                                        <Border>
 
-                                            <!-- Testo -->
-                                            <Label Grid.Column="1" Text="{Binding Text}" VerticalTextAlignment="Center" />
+                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" BackgroundColor="#363636">
+                                                <!-- RADIO: niente behavior -->
+                                                <RadioButton GroupName="{Binding Source={x:Reference Card}, Path=BindingContext.QuestionId, StringFormat='q{0}'}" IsEnabled="False" VerticalOptions="Center" Margin="5,10,0,0" >
+                                                    <!-- Si spunta in base a SelectedIndex -->
+                                                    <RadioButton.IsChecked>
+                                                        <MultiBinding Mode="OneWay" Converter="{StaticResource IndicesEqualConverter}">
+                                                            <Binding Path="Index" />
+                                                            <!-- Index dell'opzione -->
+                                                            <Binding Source="{x:Reference Card}" Path="BindingContext.SelectedIndex" />
+                                                        </MultiBinding>
+                                                    </RadioButton.IsChecked>
+                                                </RadioButton>
 
-                                            <!-- TAPPARE OVUNQUE SULLA RIGA SELEZIONA L’OPZIONE -->
-                                            <Grid.GestureRecognizers>
-                                                <TapGestureRecognizer
+                                                <!-- Testo -->
+                                                <Label Grid.Column="1" Text="{Binding Text}" VerticalTextAlignment="Center" />
+
+                                                <!-- TAPPARE OVUNQUE SULLA RIGA SELEZIONA L’OPZIONE -->
+                                                <Grid.GestureRecognizers>
+                                                    <TapGestureRecognizer
                                                     Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.SelezionaCommand}"
                                                     CommandParameter="{Binding .}" />
-                                            </Grid.GestureRecognizers>
-                                        </Grid>
-                                        
+                                                </Grid.GestureRecognizers>
+                                            </Grid>
+                                        </Border>
+
                                     </DataTemplate>
                                 </BindableLayout.ItemTemplate>
                             </VerticalStackLayout>

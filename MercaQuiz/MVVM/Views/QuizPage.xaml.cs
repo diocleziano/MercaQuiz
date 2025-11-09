@@ -1,5 +1,6 @@
 using MercaQuiz.Helpers;
 using MercaQuiz.MVVM.ViewModels;
+using MercaQuiz.MVVM.Models;
 
 namespace MercaQuiz.MVVM.Views;
 
@@ -22,8 +23,17 @@ public partial class QuizPage : ContentPage, IQueryAttributable
             await Shell.Current.GoToAsync("..");
             return;
         }
-        if (!BackendUtility.TryGetInt(query, "n", out var n)) n = 30;
-        await _vm.LoadAsync(materiaId, n);
+        if (!BackendUtility.TryGetInt(query, "n", out var n)) n =30;
+
+        // leggi parametro tipo (opzionale)
+        TipoDomanda tipo = TipoDomanda.Nessuna;
+        if (BackendUtility.TryGetInt(query, "tipo", out var tipoInt))
+        {
+            if (Enum.IsDefined(typeof(TipoDomanda), tipoInt))
+                tipo = (TipoDomanda)tipoInt;
+        }
+
+        await _vm.LoadAsync(materiaId, n, tipo);
     }
 
  

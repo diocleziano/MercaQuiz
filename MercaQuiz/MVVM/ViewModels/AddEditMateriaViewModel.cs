@@ -32,6 +32,11 @@ public partial class AddEditMateriaViewModel : ObservableObject
 
     // Nuovi campi
     [ObservableProperty] private DateTime? dataProssimoEsame; // opzionale
+    // Se l'utente modifica la data direttamente, abilita automaticamente il flag HasDataProssimoEsame
+    partial void OnDataProssimoEsameChanged(DateTime? value)
+    {
+        HasDataProssimoEsame = value.HasValue;
+    }
     [ObservableProperty] private bool isSuperato;
     [ObservableProperty] private int numeroTentativi;
     [ObservableProperty] private int votoEsame;
@@ -151,7 +156,15 @@ public partial class AddEditMateriaViewModel : ObservableObject
         }
 
         var now = DateTime.UtcNow;
-        var dataEsame = HasDataProssimoEsame ? DataProssimoEsame : null;
+        // Normalize date to local midnight when saving to avoid Kind/UTC issues and keep only date part
+        DateTime? dataEsame = null;
+        if (HasDataProssimoEsame && DataProssimoEsame.HasValue)
+        {
+            var d = DataProssimoEsame.Value;
+            // create a date-only value at local midnight
+            var localDate = new DateTime(d.Year, d.Month, d.Day, 0, 0, 0, DateTimeKind.Local);
+            dataEsame = localDate;
+        }
 
         if (!IsEditMode)
         {

@@ -133,8 +133,8 @@
             </Grid>
         </VerticalStackLayout>
         <Grid ColumnDefinitions="*,*">
-            <Button Grid.Column="0" Text="SALVA" Command="{Binding SalvaCommand}" />
-            <Button Grid.Column="1" Text="Salva e Continua" Command="{Binding SalvaENuovaCommand}" />
+            <Button Grid.Column="0" Text="Salva e Nuovo" Command="{Binding SalvaENuovaCommand}" />
+            <Button Grid.Column="1" Text="SALVA" Command="{Binding SalvaCommand}" />
 
         </Grid>
     </VerticalStackLayout>
